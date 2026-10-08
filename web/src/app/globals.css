@@ -1,0 +1,155 @@
+@import "tailwindcss";
+
+/* Curato: ink and terracotta, taken from the logo. White pages, an ink panel for the moments that
+   matter, and terracotta used sparingly as the mark of what a vault holds. */
+:root {
+  --background: #fcfbf9;
+  --foreground: #15120f;
+  --muted: #6b645c;
+  --surface: #f7f5f1;
+  --line: #e7e2da;
+  --mat: #f3efe9;
+  --accent: #c8643e;
+  --ink: #15120f;
+  --ink-2: #1f1b17;
+  --ink-line: #342e28;
+  --on-ink: #f4efe7;
+  --on-ink-muted: #a39a8e;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-surface: var(--surface);
+  --color-line: var(--line);
+  --color-mat: var(--mat);
+  --color-accent: var(--accent);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-line: var(--ink-line);
+  --color-on-ink: var(--on-ink);
+  --color-on-ink-muted: var(--on-ink-muted);
+  --font-sans: var(--font-sans);
+  --font-display: var(--font-cormorant);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  letter-spacing: -0.006em;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Display: Cormorant is a high-contrast serif, so it carries the brand at large sizes only.
+   Tighter tracking and a raised line make the headings read as set type, not a default. */
+.font-display {
+  font-family: var(--font-cormorant), Georgia, serif;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.04;
+  font-feature-settings: "liga" 1, "dlig" 1;
+}
+.font-display em {
+  font-style: italic;
+}
+
+/* The mat: every image on the site (coin, collection, acquired NFT) hangs in the same frame. */
+.mat {
+  background: var(--mat);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px;
+}
+.mat > img,
+.mat > svg {
+  display: block;
+  width: 100%;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px rgb(14 17 22 / 0.08), 0 10px 22px -12px rgb(14 17 22 / 0.4);
+}
+
+/* The placard: the small mono label that sits under a framed work, like a gallery wall caption. */
+.placard {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 10.5px;
+  line-height: 1.4;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* The diamond from the logo, used as a bullet for "held by a vault". */
+.diamond {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  background: var(--accent);
+  transform: rotate(45deg);
+}
+
+::selection {
+  background: var(--accent);
+  color: #fff;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Tabular figures for data so numbers line up and don't jump. */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* Entrance: content rises into place once, staggered by --i. */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.rise {
+  animation: rise 0.65s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: calc(var(--i, 0) * 70ms);
+}
+
+/* A soft wash behind the hero, like light falling on a gallery wall. */
+
+.frame-link {
+  transition: transform 0.25s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.frame-link:hover {
+  transform: translateY(-3px);
+}
+
+/* The ink panel: the dark room where the work is hung. */
+.ink {
+  background: var(--ink);
+  color: var(--on-ink);
+}
+.ink .mat {
+  background: var(--ink-2);
+  border-color: var(--ink-line);
+}
+.ink .placard {
+  color: var(--on-ink-muted);
+}

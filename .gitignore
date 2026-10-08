@@ -1,0 +1,19 @@
+# secrets: never commit these
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+
+# dependencies and build output
+node_modules/
+web/.next/
+web/tsconfig.tsbuildinfo
+contracts/out/
+contracts/cache/
+contracts/broadcast/
+keeper/state/
+
+# local deployments (addresses are public, but they are specific to a fork)
+contracts/deployments/*-local.json

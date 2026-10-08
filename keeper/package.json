@@ -1,0 +1,19 @@
+{
+  "name": "curato-keeper",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Bot that keeps Curato moving: harvests fees, posts vault price caps, buys NFTs, and runs giveaways.",
+  "scripts": {
+    "start": "node src/index.mjs",
+    "once": "node src/index.mjs --once",
+    "dry": "node src/index.mjs --once --dry-run",
+    "test": "node --test",
+    "abis": "node scripts/sync-abis.mjs"
+  },
+  "dependencies": {
+    "@noble/curves": "1.9.7",
+    "@noble/hashes": "1.8.0",
+    "viem": "^2.57.2"
+  }
+}
