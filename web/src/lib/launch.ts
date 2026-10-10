@@ -3,6 +3,7 @@
 import { createPublicClient, createWalletClient, custom, defineChain, parseEventLogs, type Address } from "viem";
 import { launcherAbi, feeRouterAbi, ponsCurveAbi, erc20Abi } from "./abis";
 import { CHAIN_ID, contracts, PONS_FACTORY } from "./contracts";
+import { getActiveProvider } from "./eip1193";
 
 const MAX_UINT = 2n ** 256n - 1n;
 
@@ -14,8 +15,9 @@ const chain = defineChain({
 });
 
 function clients() {
-  if (typeof window === "undefined" || !window.ethereum) throw new Error("No wallet found.");
-  const transport = custom(window.ethereum as Parameters<typeof custom>[0]);
+  const provider = getActiveProvider();
+  if (!provider) throw new Error("No wallet connected.");
+  const transport = custom(provider as Parameters<typeof custom>[0]);
   return {
     publicClient: createPublicClient({ chain, transport }),
     walletClient: createWalletClient({ chain, transport }),

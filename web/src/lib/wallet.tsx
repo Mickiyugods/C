@@ -1,21 +1,21 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { PrivyProvider, usePrivy, useWallets } from "@privy-io/react-auth";
+import { defineChain } from "viem";
+import { setActiveProvider } from "./eip1193";
 
 export const ROBINHOOD_CHAIN_ID = 4663;
-const CHAIN_HEX = "0x" + ROBINHOOD_CHAIN_ID.toString(16);
 
-type Eip1193 = {
-  request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
-  on?: (event: string, cb: (...args: unknown[]) => void) => void;
-  removeListener?: (event: string, cb: (...args: unknown[]) => void) => void;
-};
-
-declare global {
-  interface Window {
-    ethereum?: Eip1193;
-  }
-}
+// Robinhood Chain for Privy. Transactions still flow through the connected wallet's own provider; this RPC is
+// only a read fallback and the chain Privy keeps wallets switched to.
+const robinhood = defineChain({
+  id: ROBINHOOD_CHAIN_ID,
+  name: "Robinhood Chain",
+  nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
+  rpcUrls: { default: { http: ["https://rpc.mainnet.chain.robinhood.com"] } },
+  blockExplorers: { default: { name: "Blockscout", url: "https://robinhoodchain.blockscout.com" } },
+});
 
 type WalletState = {
   address: string | null;
@@ -30,100 +30,115 @@ type WalletState = {
 
 const WalletContext = createContext<WalletState | null>(null);
 
-export function WalletProvider({ children }: { children: React.ReactNode }) {
-  const [address, setAddress] = useState<string | null>(null);
-  const [chainId, setChainId] = useState<number | null>(null);
+// Shown when NEXT_PUBLIC_PRIVY_APP_ID is missing so the app still renders instead of crashing.
+const DISABLED: WalletState = {
+  address: null,
+  chainId: null,
+  error: "Wallet connect is not configured.",
+  connecting: false,
+  wrongChain: false,
+  connect: async () => {},
+  switchChain: async () => {},
+  disconnect: () => {},
+};
+
+/** Bridges Privy's hooks to the small WalletState the app already uses, and keeps the wallet on Robinhood Chain. */
+function WalletBridge({ children }: { children: React.ReactNode }) {
+  const { ready, login, logout } = usePrivy();
+  const { wallets } = useWallets();
+  const wallet = wallets[0];
   const [error, setError] = useState<string | null>(null);
-  const [connecting, setConnecting] = useState(false);
+  const [pending, setPending] = useState(false);
 
+  const address = wallet?.address ?? null;
+  const chainId = wallet?.chainId ? Number(wallet.chainId.split(":")[1]) : null;
+
+  // Publish the connected wallet's provider for the transaction helpers in launch.ts.
   useEffect(() => {
-    const eth = window.ethereum;
-    if (!eth) return;
-
-    eth.request({ method: "eth_accounts" }).then((a) => setAddress((a as string[])[0] ?? null)).catch(() => {});
-    eth.request({ method: "eth_chainId" }).then((c) => setChainId(parseInt(c as string, 16))).catch(() => {});
-
-    const onAccounts = (a: unknown) => setAddress((a as string[])[0] ?? null);
-    const onChain = (c: unknown) => setChainId(parseInt(c as string, 16));
-    eth.on?.("accountsChanged", onAccounts);
-    eth.on?.("chainChanged", onChain);
+    let live = true;
+    if (!wallet) {
+      setActiveProvider(null);
+      return;
+    }
+    wallet
+      .getEthereumProvider()
+      .then((p) => live && setActiveProvider(p as Parameters<typeof setActiveProvider>[0]))
+      .catch(() => live && setActiveProvider(null));
     return () => {
-      eth.removeListener?.("accountsChanged", onAccounts);
-      eth.removeListener?.("chainChanged", onChain);
+      live = false;
     };
-  }, []);
+  }, [wallet]);
+
+  // Always keep the wallet on Robinhood Chain (4663).
+  useEffect(() => {
+    if (wallet && chainId !== null && chainId !== ROBINHOOD_CHAIN_ID) {
+      wallet.switchChain(ROBINHOOD_CHAIN_ID).catch(() => {});
+    }
+  }, [wallet, chainId]);
 
   const connect = useCallback(async () => {
     setError(null);
-    const eth = window.ethereum;
-    if (!eth) {
-      setError("No wallet found. Install MetaMask, Rabby or another browser wallet.");
-      return;
-    }
-    setConnecting(true);
+    setPending(true);
     try {
-      const accounts = (await eth.request({ method: "eth_requestAccounts" })) as string[];
-      setAddress(accounts[0] ?? null);
-      setChainId(parseInt((await eth.request({ method: "eth_chainId" })) as string, 16));
+      await login();
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Connection rejected.");
+      setError(e instanceof Error ? e.message : "Connection cancelled.");
     } finally {
-      setConnecting(false);
+      setPending(false);
     }
-  }, []);
-
-  // Wallets have no standard RPC to disconnect, so this just forgets the connection in the app (until the
-  // page reloads and reads the still-authorized account again).
-  const disconnect = useCallback(() => {
-    setAddress(null);
-    setError(null);
-  }, []);
+  }, [login]);
 
   const switchChain = useCallback(async () => {
+    if (!wallet) return;
     setError(null);
-    const eth = window.ethereum;
-    if (!eth) return;
     try {
-      await eth.request({ method: "wallet_switchEthereumChain", params: [{ chainId: CHAIN_HEX }] });
+      await wallet.switchChain(ROBINHOOD_CHAIN_ID);
     } catch (e) {
-      if ((e as { code?: number }).code === 4902) {
-        try {
-          await eth.request({
-            method: "wallet_addEthereumChain",
-            params: [
-              {
-                chainId: CHAIN_HEX,
-                chainName: "Robinhood Chain",
-                nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
-                rpcUrls: ["https://rpc.mainnet.chain.robinhood.com"],
-                blockExplorerUrls: ["https://robinhoodchain.blockscout.com"],
-              },
-            ],
-          });
-        } catch (err) {
-          setError(err instanceof Error ? err.message : "Could not add Robinhood Chain.");
-        }
-      } else {
-        setError(e instanceof Error ? e.message : "Could not switch network.");
-      }
+      setError(e instanceof Error ? e.message : "Could not switch to Robinhood Chain.");
     }
-  }, []);
+  }, [wallet]);
+
+  const disconnect = useCallback(() => {
+    setError(null);
+    logout().catch(() => {});
+  }, [logout]);
 
   const value = useMemo<WalletState>(
     () => ({
       address,
       chainId,
       error,
-      connecting,
+      connecting: !ready || pending,
       wrongChain: !!address && chainId !== null && chainId !== ROBINHOOD_CHAIN_ID,
       connect,
       switchChain,
       disconnect,
     }),
-    [address, chainId, error, connecting, connect, switchChain, disconnect],
+    [address, chainId, error, ready, pending, connect, switchChain, disconnect],
   );
 
   return <WalletContext.Provider value={value}>{children}</WalletContext.Provider>;
+}
+
+export function WalletProvider({ children }: { children: React.ReactNode }) {
+  const appId = process.env.NEXT_PUBLIC_PRIVY_APP_ID;
+  if (!appId) {
+    return <WalletContext.Provider value={DISABLED}>{children}</WalletContext.Provider>;
+  }
+  return (
+    <PrivyProvider
+      appId={appId}
+      config={{
+        appearance: { theme: "light", accentColor: "#c8643e", walletChainType: "ethereum-only" },
+        loginMethods: ["wallet", "email", "google", "twitter"],
+        embeddedWallets: { ethereum: { createOnLogin: "users-without-wallets" } },
+        defaultChain: robinhood,
+        supportedChains: [robinhood],
+      }}
+    >
+      <WalletBridge>{children}</WalletBridge>
+    </PrivyProvider>
+  );
 }
 
 export function useWallet() {
