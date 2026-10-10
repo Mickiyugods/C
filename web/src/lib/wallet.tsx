@@ -25,6 +25,7 @@ type WalletState = {
   wrongChain: boolean;
   connect: () => Promise<void>;
   switchChain: () => Promise<void>;
+  disconnect: () => void;
 };
 
 const WalletContext = createContext<WalletState | null>(null);
@@ -71,6 +72,13 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  // Wallets have no standard RPC to disconnect, so this just forgets the connection in the app (until the
+  // page reloads and reads the still-authorized account again).
+  const disconnect = useCallback(() => {
+    setAddress(null);
+    setError(null);
+  }, []);
+
   const switchChain = useCallback(async () => {
     setError(null);
     const eth = window.ethereum;
@@ -110,8 +118,9 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
       wrongChain: !!address && chainId !== null && chainId !== ROBINHOOD_CHAIN_ID,
       connect,
       switchChain,
+      disconnect,
     }),
-    [address, chainId, error, connecting, connect, switchChain],
+    [address, chainId, error, connecting, connect, switchChain, disconnect],
   );
 
   return <WalletContext.Provider value={value}>{children}</WalletContext.Provider>;
