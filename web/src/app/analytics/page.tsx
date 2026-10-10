@@ -3,6 +3,7 @@ import { getAnalytics, getCoins } from "@/lib/chain";
 import { fmtEth, short } from "@/lib/format";
 import { brand } from "@/config/brand";
 import { PageHeader } from "@/components/PageHeader";
+import { LiveRefresh } from "@/components/coin/LiveRefresh";
 import type { Analytics, Coin } from "@/lib/types";
 
 export const metadata = { title: "Analytics" };
@@ -44,6 +45,7 @@ export default async function Page() {
       stats: [
         ["Fees routed", `${fmtEth(data.feesRoutedEth)} ETH`],
         ["Waiting in vaults", `${fmtEth(data.ethInVaultsEth)} ETH`],
+        ["To treasury (" + String(brand.split.treasury) + "%)", `${fmtEth((data.feesRoutedEth * brand.split.treasury) / 100)} ETH`],
       ],
     },
     {
@@ -66,7 +68,9 @@ export default async function Page() {
       </PageHeader>
 
       <section className="mx-auto max-w-6xl px-5 py-14">
-        <div className="space-y-px overflow-hidden rounded-xl border border-line bg-line">
+        {/* The ledger reads live from the chain; keep it current without a manual reload. */}
+        <LiveRefresh intervalMs={10000} />
+        <div className="space-y-px overflow-hidden rounded-2xl border border-line bg-line">
           {groups.map((g) => (
             <div key={g.label} className="grid gap-px bg-line sm:grid-cols-[160px_1fr]">
               <div className="bg-surface px-6 py-6">
@@ -90,7 +94,7 @@ export default async function Page() {
             Where each coin&apos;s routed fees went. The split is fixed in the contract: {brand.split.vault}% to the
             vault, {brand.split.treasury}% to the treasury.
           </p>
-          <div className="mt-6 overflow-hidden rounded-xl border border-line">
+          <div className="mt-6 overflow-hidden rounded-2xl border border-line">
             <div className="placard hidden grid-cols-[minmax(0,1fr)_120px_120px_120px] gap-4 border-b border-line bg-surface px-5 py-3 md:grid">
               <span>Coin</span>
               <span className="text-right">Routed</span>

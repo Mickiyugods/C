@@ -3,7 +3,7 @@ import { getRaffles } from "@/lib/chain";
 import { PageHeader } from "@/components/PageHeader";
 import type { RaffleRow } from "@/lib/types";
 
-export const metadata = { title: "Holders" };
+export const metadata = { title: "Giveaways" };
 
 export const dynamic = "force-dynamic";
 
