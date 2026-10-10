@@ -48,9 +48,10 @@ export function Footer() {
         <div className="mx-auto grid max-w-6xl gap-10 px-6 pt-16 pb-14 sm:grid-cols-2 lg:grid-cols-[1.8fr_1fr_1fr_1fr] lg:gap-12 lg:px-10">
           <div className="sm:col-span-2 lg:col-span-1">
             <Logo />
-            <p className="mt-5 max-w-xs text-sm leading-relaxed text-on-ink-muted">
-              A launchpad where every coin curates an NFT collection. Trading fees fund a vault, the vault buys floor
-              NFTs, and {brand.split.vault}% / {brand.split.treasury}% is fixed in the contract.
+            <p className="font-display mt-5 text-lg leading-snug text-on-ink">Launch coins that curate NFT floors.</p>
+            <p className="mt-3 max-w-xs text-sm leading-relaxed text-on-ink-muted">
+              Every coin&apos;s trading fees buy its collection&apos;s floor — {brand.split.vault}% to the vault,{" "}
+              {brand.split.treasury}% to the treasury, fixed in the contract and routed to no wallet. Built on {brand.launchpad}.
             </p>
           </div>
 
@@ -70,25 +71,36 @@ export function Footer() {
           ))}
         </div>
 
-        {/* Contracts: a single wall-label row so the addresses read like a plaque, not a list. */}
-        <div className="mx-auto max-w-6xl border-t border-ink-line px-6 py-6 lg:px-10">
-          <h4 className="placard mb-4">On-chain</h4>
-          <ul className="flex flex-wrap gap-x-8 gap-y-3">
+        {/* Contracts as tappable chips — the trust-minimised core, read straight from the chain. */}
+        <div className="mx-auto max-w-6xl border-t border-ink-line px-6 py-8 lg:px-10">
+          <div className="mb-4 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+            <h4 className="placard flex items-center gap-2">
+              <span className="diamond" aria-hidden /> On-chain
+            </h4>
+            <p className="text-xs text-on-ink-muted">No owner · no upgrades · read it yourself on {brand.chain.name}.</p>
+          </div>
+          <ul className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-5">
             {protocol.map(([label, address]) => (
-              <li key={label} className="flex items-baseline gap-2.5">
-                <span className="text-xs text-on-ink-muted">{label}</span>
+              <li key={label}>
                 {address ? (
                   <a
                     href={explorer + address}
                     target="_blank"
                     rel="noreferrer"
                     title={address}
-                    className="font-mono text-xs text-on-ink transition hover:text-accent"
+                    className="group flex flex-col gap-1.5 rounded-xl border border-ink-line bg-ink-2/30 px-3.5 py-3 transition hover:border-accent/50 hover:bg-ink-2"
                   >
-                    {address.slice(0, 6)}…{address.slice(-4)} ↗
+                    <span className="placard !text-on-ink-muted transition group-hover:!text-on-ink">{label}</span>
+                    <span className="flex items-center gap-1 font-mono text-xs text-on-ink">
+                      {address.slice(0, 6)}…{address.slice(-4)}
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden className="shrink-0 text-on-ink-muted transition group-hover:text-accent"><path d="M14 5h5v5M19 5l-8 8M19 13v4.5A1.5 1.5 0 0 1 17.5 19h-11A1.5 1.5 0 0 1 5 17.5v-11A1.5 1.5 0 0 1 6.5 5H11" /></svg>
+                    </span>
                   </a>
                 ) : (
-                  <span className="font-mono text-xs text-on-ink-muted">Not deployed</span>
+                  <div className="flex flex-col gap-1.5 rounded-xl border border-dashed border-ink-line px-3.5 py-3">
+                    <span className="placard !text-on-ink-muted">{label}</span>
+                    <span className="font-mono text-xs text-on-ink-muted">Not deployed</span>
+                  </div>
                 )}
               </li>
             ))}
