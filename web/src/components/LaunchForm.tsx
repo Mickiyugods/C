@@ -27,7 +27,7 @@ const steps = [
 ] as const;
 
 const field =
-  "w-full rounded-xl border border-line bg-white px-4 py-3 text-sm outline-none transition placeholder:text-muted focus:border-foreground";
+  "w-full rounded-2xl border border-line bg-white px-4 py-3 text-sm outline-none transition placeholder:text-muted focus:border-foreground";
 
 const eth = (n: number) => n.toFixed(4);
 
@@ -45,7 +45,7 @@ function Err({ children }: { children?: React.ReactNode }) {
 }
 
 function Notice({ children }: { children: React.ReactNode }) {
-  return <div className="rounded-xl border border-line bg-surface/60 p-4 text-sm leading-relaxed text-muted">{children}</div>;
+  return <div className="rounded-2xl border border-line bg-surface/60 p-4 text-sm leading-relaxed text-muted">{children}</div>;
 }
 
 export function LaunchForm({ listed }: { listed: string[] | null }) {
@@ -221,13 +221,13 @@ export function LaunchForm({ listed }: { listed: string[] | null }) {
 
   if (result) {
     return (
-      <div className="rounded-xl border border-line bg-white p-8 text-center sm:p-12">
+      <div className="rounded-2xl border border-line bg-white p-8 text-center sm:p-12">
         <p className="font-mono text-xs text-accent">LAUNCHED</p>
         <h2 className="mt-2 font-display text-3xl font-medium">${ticker} is live</h2>
         <p className="mx-auto mt-3 max-w-md text-sm text-muted">
           Your coin trades on Pons now. Its creator fees flow to a router that sends 80% to the collection vault and 20% to the treasury.
         </p>
-        <dl className="mx-auto mt-6 max-w-md space-y-2 rounded-xl bg-surface/60 p-4 text-left text-sm">
+        <dl className="mx-auto mt-6 max-w-md space-y-2 rounded-2xl bg-surface/60 p-4 text-left text-sm">
           {[
             ["Coin", result.coin],
             ["Fee router", result.router],
@@ -281,7 +281,7 @@ export function LaunchForm({ listed }: { listed: string[] | null }) {
       </ol>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_340px]">
-        <section className="order-2 rounded-xl border border-line bg-white p-6 sm:p-8 lg:order-1">
+        <section className="order-2 rounded-2xl border border-line bg-white p-6 sm:p-8 lg:order-1">
           {step === 1 && (
             <div className="space-y-6">
               <header>
@@ -328,7 +328,7 @@ export function LaunchForm({ listed }: { listed: string[] | null }) {
                   Token image <span className="font-normal text-muted">· required</span>
                 </Label>
                 {image && filePreview ? (
-                  <div className="flex items-center gap-4 rounded-xl border border-line bg-surface/50 p-3">
+                  <div className="flex items-center gap-4 rounded-2xl border border-line bg-surface/50 p-3">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={filePreview} alt="Token image preview" className="h-14 w-14 rounded-xl object-cover" />
                     <div className="min-w-0 flex-1 text-sm">
@@ -354,7 +354,7 @@ export function LaunchForm({ listed }: { listed: string[] | null }) {
                         e.preventDefault();
                         pickImage(e.dataTransfer.files[0]);
                       }}
-                      className="flex w-full items-center gap-4 rounded-xl border border-dashed border-line bg-surface/50 p-4 text-left transition hover:border-foreground"
+                      className="flex w-full items-center gap-4 rounded-2xl border border-dashed border-line bg-surface/50 p-4 text-left transition hover:border-foreground"
                     >
                       {previewSrc ? (
                         // eslint-disable-next-line @next/next/no-img-element
@@ -364,7 +364,7 @@ export function LaunchForm({ listed }: { listed: string[] | null }) {
                       )}
                       <span className="text-sm">
                         <span className="font-medium">Drop an image, or click to choose</span>
-                        <span className="block text-xs text-muted">PNG, JPG, WebP, GIF or SVG, up to 5120 KB</span>
+                        <span className="block text-xs text-muted">PNG, JPG, WebP, GIF or SVG, up to 5 MB</span>
                       </span>
                     </button>
                     <input
@@ -520,7 +520,7 @@ export function LaunchForm({ listed }: { listed: string[] | null }) {
                 coin&apos;s policy is the one applied. Coins that burn and coins that airdrop never pool their fees to buy the same NFT.
               </p>
 
-              <div className="rounded-xl border border-line p-5">
+              <div className="rounded-2xl border border-line p-5">
                 <div className="flex items-baseline justify-between">
                   <span className="text-sm font-medium">Creator tax</span>
                   <span className="font-mono text-2xl">{tax.toFixed(2)}%</span>
@@ -546,14 +546,6 @@ export function LaunchForm({ listed }: { listed: string[] | null }) {
                   {launchParams.maxCreatorTaxPct.toFixed(2)}% and snapshots it at launch.
                 </p>
               </div>
-
-              <div className="rounded-xl border border-line bg-surface/50 p-5">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">Initial buy</span>
-                  <span className="rounded-md border border-line px-2 py-0.5 text-[11px] text-muted">temporarily disabled</span>
-                </div>
-                <p className="mt-2 text-sm text-muted">You can buy your own coin straight after launching, from the coin page, at the ordinary price.</p>
-              </div>
             </div>
           )}
 
@@ -564,14 +556,13 @@ export function LaunchForm({ listed }: { listed: string[] | null }) {
                 <p className="mt-1 text-sm text-muted">Check it over. One transaction does all of it.</p>
               </header>
 
-              <dl className="divide-y divide-line rounded-xl border border-line text-sm">
+              <dl className="divide-y divide-line rounded-2xl border border-line text-sm">
                 {[
                   ["Name", name || "-"],
                   ["Ticker", ticker || "-"],
                   ["Sweeps for", selected?.name ?? "-"],
                   ["NFT policy", policy === "airdrop" ? "Airdrop to holders" : "Burn them"],
                   ["Creator tax", `${tax.toFixed(2)}%`],
-                  ["Initial buy", "off for now"],
                   ["Links", [website, x, telegram].filter(Boolean).join(" · ") || "None"],
                   ["Dev buy", devBuy && Number(devBuy) > 0 ? `${devBuy} ETH` : "None"],
                 ].map(([k, v]) => (
@@ -582,7 +573,7 @@ export function LaunchForm({ listed }: { listed: string[] | null }) {
                 ))}
               </dl>
 
-              <div className="rounded-xl border border-line bg-surface/50 p-4 text-sm">
+              <div className="rounded-2xl border border-line bg-surface/50 p-4 text-sm">
                 <div className="flex justify-between">
                   <span className="text-muted">{brand.launchpad} launch fee</span>
                   <span className="font-mono">{launchParams.ponsLaunchFeeEth.toFixed(4)} ETH</span>
@@ -608,13 +599,13 @@ export function LaunchForm({ listed }: { listed: string[] | null }) {
                 </li>
               </ul>
 
-              <p className="rounded-xl border border-line p-4 text-xs text-muted">
+              <p className="rounded-2xl border border-line p-4 text-xs text-muted">
                 At {tax.toFixed(2)}% tax, every 1 ETH traded sends about <span className="font-mono text-foreground">{eth(fees.vault)} ETH</span> to the vault and{" "}
                 <span className="font-mono text-foreground">{eth(fees.treasury)} ETH</span> to the treasury. Estimate. Contracts are unaudited until stated otherwise.
               </p>
 
               {wallet.error ? <p className="text-xs text-accent">{wallet.error}</p> : null}
-              {launchError ? <p className="rounded-xl border border-accent/40 bg-accent/5 p-3 text-sm text-accent">{launchError}</p> : null}
+              {launchError ? <p className="rounded-2xl border border-accent/40 bg-accent/5 p-3 text-sm text-accent">{launchError}</p> : null}
               <button
                 type="button"
                 disabled={action.disabled}
@@ -637,7 +628,7 @@ export function LaunchForm({ listed }: { listed: string[] | null }) {
           </div>
         </section>
 
-        <aside className="ink order-1 h-fit overflow-hidden rounded-xl lg:sticky lg:top-28 lg:order-2">
+        <aside className="ink order-1 h-fit overflow-hidden rounded-2xl lg:sticky lg:top-28 lg:order-2">
           <p className="placard border-b border-ink-line px-5 py-3">Your coin, before launch</p>
           <div className="flex items-center gap-3 p-5">
             {previewSrc ? (
