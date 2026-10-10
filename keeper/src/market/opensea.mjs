@@ -54,20 +54,64 @@ export function normalizeOrder(o, collection, nowSeconds = Math.floor(Date.now()
   return { order: { parameters, signature }, price, tokenId: parameters.offer[0].identifierOrCriteria, hash: o.order_hash };
 }
 
-/** Cheapest valid listings first. Needs OPENSEA_API_KEY. */
+const API = "https://api.opensea.io/api/v2";
+// How many of the cheapest listings to fetch a signature for each pass (one request per listing).
+const FULFILL_LIMIT = 8;
+// A FULL_OPEN listing can be filled by anyone, so the seller's signature is the same whatever fulfiller we
+// name here. The vault fills the order on-chain as itself; this address is only used to fetch the signature.
+const PROBE_FULFILLER = "0x000000000000000000000000000000000000dEaD";
+
+async function os(path, init) {
+  const headers = { "x-api-key": config.openSeaKey, accept: "application/json", ...(init?.body ? { "content-type": "application/json" } : {}) };
+  const res = await fetch(`${API}${path}`, { ...init, headers, signal: AbortSignal.timeout(15_000) });
+  if (!res.ok) throw new Error(`OpenSea ${path.split("?")[0]} answered ${res.status}`);
+  return res.json();
+}
+
+/** OpenSea's slug for a collection contract on this chain — the listings endpoints are keyed by slug. */
+async function slugFor(collection) {
+  const j = await os(`/chain/${config.openSeaChain}/contract/${collection}`);
+  if (!j.collection) throw new Error(`OpenSea has no collection for ${collection}`);
+  return j.collection;
+}
+
+/** Fetches the seller's signature for a listing and shapes it like the old orders API so normalizeOrder can read it. */
+async function signedOrder(listing) {
+  const body = JSON.stringify({
+    listing: { hash: listing.order_hash, chain: listing.chain, protocol_address: listing.protocol_address },
+    fulfiller: { address: PROBE_FULFILLER },
+  });
+  const j = await os(`/listings/fulfillment_data`, { method: "POST", body });
+  const o = j?.fulfillment_data?.orders?.[0];
+  if (!o?.parameters || !o?.signature) return null;
+  return { protocol_data: { parameters: o.parameters, signature: o.signature }, order_hash: listing.order_hash };
+}
+
+/**
+ * Cheapest valid listings first, each a fully signed Seaport order the vault can fulfill. Needs OPENSEA_API_KEY.
+ * OpenSea's current API lists orders without the signature, so we resolve the collection slug, pull the cheapest
+ * listings, then fetch each one's signature through the fulfillment endpoint before normalizing it.
+ */
 export async function listingsFor(collection) {
   if (!config.openSeaKey) throw new Error("OPENSEA_API_KEY is not set");
-  const url = new URL(`https://api.opensea.io/api/v2/orders/${config.openSeaChain}/seaport/listings`);
-  url.searchParams.set("asset_contract_address", collection);
-  url.searchParams.set("order_by", "eth_price");
-  url.searchParams.set("order_direction", "asc");
-  url.searchParams.set("limit", "50");
+  const slug = await slugFor(collection);
+  const { listings = [] } = await os(`/listings/collection/${slug}/best?limit=30`);
 
-  const res = await fetch(url, { headers: { "x-api-key": config.openSeaKey, accept: "application/json" }, signal: AbortSignal.timeout(15_000) });
-  if (!res.ok) throw new Error(`OpenSea answered ${res.status}`);
-  const json = await res.json();
-  return (json.orders ?? [])
-    .map((o) => normalizeOrder(o, collection))
-    .filter(Boolean)
-    .sort((a, b) => (a.price < b.price ? -1 : a.price > b.price ? 1 : 0));
+  const cheapest = listings
+    .map((l) => ({ l, wei: BigInt(l?.price?.current?.value ?? "0") }))
+    .filter((c) => c.wei > 0n)
+    .sort((a, b) => (a.wei < b.wei ? -1 : a.wei > b.wei ? 1 : 0))
+    .slice(0, FULFILL_LIMIT);
+
+  const out = [];
+  for (const { l } of cheapest) {
+    try {
+      const order = await signedOrder(l);
+      const norm = order && normalizeOrder(order, collection);
+      if (norm) out.push(norm);
+    } catch {
+      // skip a listing we cannot sign or normalize; keep scanning the rest
+    }
+  }
+  return out.sort((a, b) => (a.price < b.price ? -1 : a.price > b.price ? 1 : 0));
 }
