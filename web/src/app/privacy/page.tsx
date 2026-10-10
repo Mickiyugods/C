@@ -11,7 +11,7 @@ const items: [string, string][] = [
   ["Cookies and tracking", "The site does not use advertising cookies or third-party analytics trackers. If that changes, this page will say so before it happens."],
   ["Third parties", "Your wallet provider, the RPC provider your wallet uses, Pons, Seaport and the image hosts of collections have their own privacy practices that apply when you use them."],
   ["Your choices", "You can use the site without connecting a wallet. Disconnecting your wallet in its own app stops the site from seeing your address."],
-  ["Contact", "Add a contact address here before launching publicly."],
+  ["Contact", "Questions about this policy or your data? Email us at curatouse@gmail.com."],
 ];
 
 export default function Page() {

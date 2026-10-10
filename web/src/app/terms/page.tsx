@@ -14,6 +14,7 @@ const items: [string, string][] = [
   ["Giveaways", "Giveaways are decided by a verifiable random number, but the list of holders is posted by a keeper. Winners are not guaranteed, and a giveaway can be delayed if the keeper is unavailable."],
   ["Limitation of liability", "To the fullest extent the law allows, we are not liable for any loss arising from your use of the site, the contracts or any third-party service."],
   ["Changes", "We may change this site and these terms. Changes to the website do not alter contracts that are already deployed."],
+  ["Contact", "Questions about these terms? Email us at curatouse@gmail.com."],
 ];
 
 export default function Page() {
