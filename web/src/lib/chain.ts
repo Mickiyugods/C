@@ -56,7 +56,7 @@ const eth = (wei: bigint) => Number(formatEther(wei));
 
 export async function getCoins(): Promise<Coin[]> {
   if (!isConfigured) return [];
-  return cached("coins", 10_000, loadCoins);
+  return cached("coins", 5_000, loadCoins);
 }
 
 async function loadCoins(): Promise<Coin[]> {
@@ -316,7 +316,7 @@ async function loadPurchases(): Promise<Purchase[]> {
 // ------------------------------------------------------------------ one coin
 
 export type Trade = { side: "buy" | "sell"; trader: string; ethValue: number; tokens: number; ts: number; tx: string; price: number };
-export type Holder = { address: string; balance: number; pct: number };
+export type Holder = { address: string; balance: number; pct: number; tag?: string };
 export type CoinMarket = {
   priceEth: number; // marginal ETH per token
   realQuoteEth: number; // ETH raised toward graduation
@@ -328,6 +328,8 @@ export type CoinMarket = {
   reserveQuoteEth: number; // effective quote reserve (ETH) for quoting trades
   reserveToken: number; // effective token reserve
   feeBps: number; // curve fee in basis points
+  toVaultEth: number; // cumulative fees routed to the vault (80%)
+  toTreasuryEth: number; // cumulative fees routed to the treasury (20%)
 };
 
 /** USD per ETH from CoinGecko, cached for a minute so live refreshes don't hammer the API. */
@@ -398,7 +400,7 @@ async function getTrades(curve: Address): Promise<Trade[]> {
   return rows.sort((a, b) => b.ts - a.ts || b.tokens - a.tokens);
 }
 
-async function getHolders(coin: Address): Promise<Holder[]> {
+async function getHolders(coin: Address, labels: Record<string, string> = {}): Promise<Holder[]> {
   const c = client();
   const transfers = await logsChunked((fromBlock, toBlock) =>
     c.getLogs({ address: coin, event: getAbiItem({ abi: erc20Abi, name: "Transfer" }), fromBlock, toBlock }),
@@ -416,7 +418,7 @@ async function getHolders(coin: Address): Promise<Holder[]> {
     .filter(([, v]) => v > 0n)
     .map(([address, v]): Holder => {
       const balance = Number(formatEther(v));
-      return { address, balance, pct: (balance / total) * 100 };
+      return { address, balance, pct: (balance / total) * 100, tag: labels[address.toLowerCase()] };
     })
     .sort((a, b) => b.balance - a.balance);
 }
@@ -441,8 +443,9 @@ export async function getCoinDetails(address: string): Promise<CoinDetails | und
   const c = client();
   const vault = coin.vault as Address;
   const curve = coin.curve as Address;
+  const router = coin.router as Address;
 
-  const [balance, bought, curveState, trades, holders, ethUsd, devTransfers] = await Promise.all([
+  const [balance, bought, curveState, trades, holders, ethUsd, devTransfers, harvests] = await Promise.all([
     c.readContract({ address: vault, abi: vaultAbi, functionName: "balanceOf", args: [coin.address as Address] }),
     logsChunked((fromBlock, toBlock) =>
       c.getLogs({ address: vault, event: getAbiItem({ abi: vaultAbi, name: "Bought" }), args: { coin: coin.address as Address }, fromBlock, toBlock }),
@@ -459,10 +462,24 @@ export async function getCoinDetails(address: string): Promise<CoinDetails | und
       })
       .catch(() => []),
     getTrades(curve).catch(() => [] as Trade[]),
-    getHolders(coin.address as Address).catch(() => [] as Holder[]),
+    getHolders(coin.address as Address, {
+      [curve.toLowerCase()]: "Bonding curve",
+      [vault.toLowerCase()]: "Vault",
+    }).catch(() => [] as Holder[]),
     getEthUsd().catch(() => 0),
     getDevTransfers(coin.address as Address, coin.creator as Address, [curve, vault]).catch(() => [] as DevTransfer[]),
+    logsChunked((fromBlock, toBlock) =>
+      c.getLogs({ address: router, event: getAbiItem({ abi: feeRouterAbi, name: "Harvested" }), fromBlock, toBlock }),
+    ).catch(() => []),
   ]);
+
+  // cumulative fee split pulled by this coin's router over all harvests
+  let toVaultWei = 0n;
+  let toTreasuryWei = 0n;
+  for (const h of harvests) {
+    toVaultWei += (h.args.toVault as bigint | undefined) ?? 0n;
+    toTreasuryWei += (h.args.toTreasury as bigint | undefined) ?? 0n;
+  }
 
   const reserves = curveState[0]?.result as readonly [bigint, bigint] | undefined;
   const realQuote = (curveState[1]?.result as bigint | undefined) ?? 0n;
@@ -503,12 +520,14 @@ export async function getCoinDetails(address: string): Promise<CoinDetails | und
       realQuoteEth,
       graduationEth,
       progress: graduationEth > 0 ? Math.min(1, realQuoteEth / graduationEth) : coin.graduated ? 1 : 0,
-      holders: holders.length,
+      holders: holders.filter((h) => !h.tag).length,
       trades: trades.length,
       ethUsd,
       reserveQuoteEth,
       reserveToken,
       feeBps,
+      toVaultEth: eth(toVaultWei),
+      toTreasuryEth: eth(toTreasuryWei),
     },
     trades,
     holders,

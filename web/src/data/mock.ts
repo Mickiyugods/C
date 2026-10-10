@@ -17,6 +17,13 @@ export const explorers: Record<Chain, string> = {
   solana: "https://www.coingecko.com/en/nft/",
 };
 
+// Where a collection is viewed everywhere on the site. OpenSea indexes Ethereum and Robinhood Chain, and
+// /assets/<chain>/<address> redirects to the collection page by contract address. Solana collections are
+// reference-only (their addresses are CoinGecko ids, not on-chain), so they stay on CoinGecko.
+export function collectionUrl(c: { chain: string; address: string }) {
+  return c.chain === "solana" ? explorers.solana + c.address : `https://opensea.io/assets/${c.chain}/${c.address}`;
+}
+
 /** How a collection address is shown in lists. */
 export function shortId(c: { chain: Chain; address: string; symbol?: string }) {
   if (c.chain === "solana") return c.symbol ?? "CoinGecko";
