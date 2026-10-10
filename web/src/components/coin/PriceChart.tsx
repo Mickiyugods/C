@@ -81,7 +81,9 @@ function Toggle({ on }: { on: boolean }) {
 
 export function PriceChart({ trades, ethUsd, creator, devTransfers }: { trades: Trade[]; ethUsd: number; creator: string; devTransfers: DevTransfer[] }) {
   const wallet = useWallet();
-  const [range, setRange] = useState<RangeKey>("1m");
+  // New/quiet coins look empty on 1m (sparse buckets carry a long flat line), so start on "All" until
+  // there are enough trades for a minute view to fill in. Only the initial value — the user can switch.
+  const [range, setRange] = useState<RangeKey>(() => (trades.filter((t) => t.price > 0).length <= 24 ? "all" : "1m"));
   const [mode, setMode] = useState<"candles" | "line">("candles");
   const [indOpen, setIndOpen] = useState(false);
   const [showDevTrades, setShowDevTrades] = useState(true);
@@ -253,7 +255,7 @@ export function PriceChart({ trades, ethUsd, creator, devTransfers }: { trades: 
   ];
 
   return (
-    <div>
+    <div className="rounded-2xl border border-line bg-white p-4 sm:p-5">
       {/* Pons-style control row: price + change on the left, tools on the right */}
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
         <div>

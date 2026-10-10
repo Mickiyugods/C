@@ -5,14 +5,26 @@ import { fmtEth, short, timeAgo } from "@/lib/format";
 import type { Trade, Holder } from "@/lib/chain";
 
 const EXPLORER = "https://robinhoodchain.blockscout.com/address/";
+const PAGE = 50;
 
-const DevTag = () => (
-  <span className="rounded-full bg-accent/10 px-1.5 py-0.5 text-[10px] font-medium tracking-wide text-accent">Dev</span>
+const AccentTag = ({ children }: { children: string }) => (
+  <span className="rounded-full bg-accent/10 px-1.5 py-0.5 text-[10px] font-medium tracking-wide text-accent">{children}</span>
+);
+const MutedTag = ({ children }: { children: string }) => (
+  <span className="rounded-full border border-line bg-surface px-1.5 py-0.5 text-[10px] font-medium tracking-wide text-muted">{children}</span>
 );
 
 export function Activity({ trades, holders, symbol, creator }: { trades: Trade[]; holders: Holder[]; symbol: string; creator: string }) {
   const [tab, setTab] = useState<"trades" | "holders">("trades");
+  const [shown, setShown] = useState(PAGE);
   const dev = creator.toLowerCase();
+
+  const list = tab === "trades" ? trades : holders;
+  const holderCount = holders.filter((h) => !h.tag).length;
+  const switchTab = (t: "trades" | "holders") => {
+    setTab(t);
+    setShown(PAGE);
+  };
 
   return (
     <div>
@@ -22,10 +34,10 @@ export function Activity({ trades, holders, symbol, creator }: { trades: Trade[]
             key={t}
             role="tab"
             aria-selected={tab === t}
-            onClick={() => setTab(t)}
+            onClick={() => switchTab(t)}
             className={`-mb-px border-b-2 pb-3 capitalize transition ${tab === t ? "border-foreground font-medium text-foreground" : "border-transparent text-muted hover:text-foreground"}`}
           >
-            {t} <span className="text-muted">{t === "trades" ? trades.length : holders.length}</span>
+            {t} <span className="text-muted">{t === "trades" ? trades.length : holderCount}</span>
           </button>
         ))}
       </div>
@@ -45,7 +57,7 @@ export function Activity({ trades, holders, symbol, creator }: { trades: Trade[]
               </tr>
             </thead>
             <tbody>
-              {trades.slice(0, 50).map((t, i) => (
+              {trades.slice(0, shown).map((t, i) => (
                 <tr key={`${t.tx}-${i}`} className="border-t border-line">
                   <td className="py-3">
                     <span className={`font-medium ${t.side === "buy" ? "text-[#0f6e56]" : "text-accent"}`}>{t.side === "buy" ? "Buy" : "Sell"}</span>
@@ -55,7 +67,7 @@ export function Activity({ trades, holders, symbol, creator }: { trades: Trade[]
                       <a href={EXPLORER + t.trader} target="_blank" rel="noreferrer" className="font-mono text-xs text-muted hover:text-foreground hover:underline">
                         {short(t.trader)}
                       </a>
-                      {t.trader.toLowerCase() === dev ? <DevTag /> : null}
+                      {t.trader.toLowerCase() === dev ? <AccentTag>Dev</AccentTag> : null}
                     </span>
                   </td>
                   <td className="py-3 text-right tabular-nums">{fmtEth(t.ethValue)}</td>
@@ -81,7 +93,7 @@ export function Activity({ trades, holders, symbol, creator }: { trades: Trade[]
             </tr>
           </thead>
           <tbody>
-            {holders.slice(0, 50).map((h, i) => (
+            {holders.slice(0, shown).map((h, i) => (
               <tr key={h.address} className="border-t border-line">
                 <td className="py-3 font-mono text-xs text-muted tabular-nums">{i + 1}</td>
                 <td className="py-3">
@@ -89,7 +101,8 @@ export function Activity({ trades, holders, symbol, creator }: { trades: Trade[]
                     <a href={EXPLORER + h.address} target="_blank" rel="noreferrer" className="font-mono text-xs text-muted hover:text-foreground hover:underline">
                       {short(h.address)}
                     </a>
-                    {h.address.toLowerCase() === dev ? <DevTag /> : null}
+                    {h.tag ? <MutedTag>{h.tag}</MutedTag> : null}
+                    {h.address.toLowerCase() === dev ? <AccentTag>Dev</AccentTag> : null}
                   </span>
                 </td>
                 <td className="py-3 text-right tabular-nums text-muted">{h.balance.toLocaleString("en-US", { maximumFractionDigits: 0 })}</td>
@@ -99,6 +112,17 @@ export function Activity({ trades, holders, symbol, creator }: { trades: Trade[]
           </tbody>
         </table>
       )}
+
+      {list.length > shown ? (
+        <div className="mt-4 flex justify-center">
+          <button
+            onClick={() => setShown((n) => n + PAGE)}
+            className="rounded-full border border-line px-5 py-2 text-xs font-medium text-muted transition hover:bg-surface hover:text-foreground"
+          >
+            Load more ({list.length - shown})
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 }

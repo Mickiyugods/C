@@ -8,7 +8,7 @@ import { TradePanel } from "@/components/coin/TradePanel";
 import { Activity } from "@/components/coin/Activity";
 import { LiveRefresh } from "@/components/coin/LiveRefresh";
 import { CopyButton, SocialLinks } from "@/components/coin/HeaderBits";
-import { collections } from "@/data/mock";
+import { collections, collectionUrl } from "@/data/mock";
 import { getCoinDetails } from "@/lib/chain";
 import { fmtEth, fmtUsd, fmtUsdCompact, short, subPrice, timeAgo } from "@/lib/format";
 
@@ -20,7 +20,18 @@ export async function generateMetadata({ params }: PageProps<"/coin/[address]">)
   const { address } = await params;
   try {
     const details = /^0x[0-9a-fA-F]{40}$/.test(address) ? await getCoinDetails(address) : null;
-    if (details) return { title: `${details.coin.name} ($${details.coin.symbol})` };
+    if (details) {
+      const { coin } = details;
+      const title = `${coin.name} ($${coin.symbol})`;
+      const description = coin.description || `${coin.name} curates ${coin.symbol} on Curato — trading fees fund a vault that buys floor NFTs, split 80% vault / 20% treasury.`;
+      const images = /^https?:\/\//.test(coin.logo) ? [coin.logo] : undefined;
+      return {
+        title,
+        description,
+        openGraph: { title, description, images, type: "website" as const },
+        twitter: { card: images ? ("summary_large_image" as const) : ("summary" as const), title, description, images },
+      };
+    }
   } catch {
     // fall through to the generic title
   }
@@ -41,11 +52,7 @@ export default async function Page({ params }: PageProps<"/coin/[address]">) {
 
   const { coin, vaultBalanceEth, purchases, market, trades, holders, devTransfers } = details;
   const collection = collections.find((c) => c.address.toLowerCase() === coin.collection.toLowerCase());
-  const openseaUrl = collection
-    ? collection.chain === "ethereum"
-      ? `https://opensea.io/assets/ethereum/${collection.address}`
-      : `https://opensea.io/collection/${collection.slug}`
-    : null;
+  const collectionHref = collection ? collectionUrl(collection) : null;
   const seed = parseInt(coin.address.slice(2, 10), 16);
   const marketCap = coin.graduated ? null : coin.marketCapEth;
   const pct = Math.round(market.progress * 100);
@@ -55,7 +62,6 @@ export default async function Page({ params }: PageProps<"/coin/[address]">) {
   const priceLabel = usd ? fmtUsd(market.priceEth * market.ethUsd) : `${subPrice(market.priceEth)} ETH`;
 
   const stats: [string, string][] = [
-    ["Market cap", marketCapLabel],
     ["Holders", String(market.holders)],
     ["Trades", String(market.trades)],
     ["Supply", "1B"],
@@ -103,8 +109,8 @@ export default async function Page({ params }: PageProps<"/coin/[address]">) {
                   <span className="flex items-center gap-1.5">
                     <span className="diamond" aria-hidden /> Curates{" "}
                     {collection ? (
-                      openseaUrl ? (
-                        <a href={openseaUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 hover:text-foreground hover:underline">
+                      collectionHref ? (
+                        <a href={collectionHref} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 hover:text-foreground hover:underline">
                           {collection.name}
                           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M14 5h5v5M19 5l-8 8M19 13v4.5A1.5 1.5 0 0 1 17.5 19h-11A1.5 1.5 0 0 1 5 17.5v-11A1.5 1.5 0 0 1 6.5 5H11" /></svg>
                         </a>
@@ -115,8 +121,6 @@ export default async function Page({ params }: PageProps<"/coin/[address]">) {
                       short(coin.collection)
                     )}
                   </span>
-                  <span aria-hidden>·</span>
-                  <a href={EXPLORER + coin.creator} target="_blank" rel="noreferrer" className="hover:text-foreground hover:underline">by {short(coin.creator)}</a>
                   {coin.launchedAt ? (<><span aria-hidden>·</span><span>{timeAgo(coin.launchedAt)}</span></>) : null}
                   <span aria-hidden>·</span>
                   <span>ETH pair</span>
@@ -140,10 +144,10 @@ export default async function Page({ params }: PageProps<"/coin/[address]">) {
         </div>
       </header>
 
-      <section className="mx-auto grid max-w-6xl gap-10 px-5 py-10 lg:grid-cols-[1fr_380px]">
-        <div className="min-w-0 space-y-12">
+      <section className="mx-auto grid max-w-6xl gap-8 px-5 py-10 lg:grid-cols-[1fr_380px]">
+        <div className="min-w-0 space-y-8">
           {/* Harvest — Curato's signature ink panel (ink + terracotta + ivory) for the key action */}
-          <div className="ink flex flex-col gap-4 rounded-2xl !p-6 sm:flex-row sm:items-center sm:justify-between">
+          <div className="ink flex flex-col gap-4 rounded-2xl border border-accent/50 !p-6 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="placard flex items-center gap-1.5"><span className="diamond" aria-hidden /> Fees</p>
               <p className="font-display mt-1.5 text-2xl font-medium text-on-ink">Harvest this coin</p>
@@ -159,7 +163,7 @@ export default async function Page({ params }: PageProps<"/coin/[address]">) {
           <PriceChart trades={trades} ethUsd={market.ethUsd} creator={coin.creator} devTransfers={devTransfers} />
 
           {coin.graduated ? null : (
-            <div>
+            <div className="rounded-2xl border border-line bg-white p-5">
               <div className="mb-2 flex items-center justify-between text-sm text-muted">
                 <span>Bonding curve</span>
                 <span className="tabular-nums">{pct}% of {fmtEth(market.graduationEth)} ETH</span>
@@ -170,7 +174,7 @@ export default async function Page({ params }: PageProps<"/coin/[address]">) {
             </div>
           )}
 
-          <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line sm:grid-cols-3">
+          <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-line bg-line sm:grid-cols-3">
             {stats.map(([k, v]) => (
               <div key={k} className="bg-white px-5 py-4">
                 <dt className="placard">{k}</dt>
@@ -179,10 +183,12 @@ export default async function Page({ params }: PageProps<"/coin/[address]">) {
             ))}
           </dl>
 
-          <Activity trades={trades} holders={holders} symbol={coin.symbol} creator={coin.creator} />
+          <div className="rounded-2xl border border-line bg-white p-5">
+            <Activity trades={trades} holders={holders} symbol={coin.symbol} creator={coin.creator} />
+          </div>
         </div>
 
-        <aside className="space-y-10">
+        <aside className="space-y-8">
           <TradePanel
             coin={coin.address}
             curve={coin.curve}
@@ -195,10 +201,10 @@ export default async function Page({ params }: PageProps<"/coin/[address]">) {
             graduated={coin.graduated}
           />
 
-          <div>
+          <div className="rounded-2xl border border-line bg-white p-5">
             <h2 className="font-display text-2xl font-medium">Details</h2>
             {coin.description ? <p className="mt-3 text-sm leading-relaxed text-muted">{coin.description}</p> : null}
-            <dl className="mt-4 divide-y divide-line border-y border-line text-sm">
+            <dl className="mt-4 divide-y divide-line text-sm">
               {rows.map(([k, v], i) => (
                 <div key={i} className="flex justify-between gap-6 py-3">
                   <dt className="text-muted">{k}</dt>
@@ -208,7 +214,7 @@ export default async function Page({ params }: PageProps<"/coin/[address]">) {
             </dl>
           </div>
 
-          <div>
+          <div className="rounded-2xl border border-line bg-white p-5">
             <h2 className="font-display text-2xl font-medium">Acquired by this vault</h2>
             {purchases.length ? (
               <ul className="mt-4 grid grid-cols-2 gap-4">
@@ -228,15 +234,15 @@ export default async function Page({ params }: PageProps<"/coin/[address]">) {
                 ))}
               </ul>
             ) : (
-              <p className="mt-4 rounded-xl border border-dashed border-line px-5 py-8 text-center text-sm text-muted">
+              <p className="mt-4 px-1 py-6 text-center text-sm text-muted">
                 The vault has not bought an NFT for this coin yet. Purchases appear here, framed, as soon as they happen.
               </p>
             )}
           </div>
 
-          <div>
+          <div className="rounded-2xl border border-line bg-white p-5">
             <h2 className="font-display text-2xl font-medium">Contracts</h2>
-            <dl className="mt-4 divide-y divide-line border-y border-line text-sm">
+            <dl className="mt-4 divide-y divide-line text-sm">
               {[
                 ["Coin", coin.address],
                 ["Bonding curve", coin.curve],
@@ -253,6 +259,24 @@ export default async function Page({ params }: PageProps<"/coin/[address]">) {
                   </dd>
                 </div>
               ))}
+            </dl>
+          </div>
+
+          <div className="rounded-2xl border border-line bg-white p-5">
+            <h2 className="font-display text-2xl font-medium">Fees harvested</h2>
+            <dl className="mt-4 divide-y divide-line text-sm">
+              <div className="flex justify-between gap-6 py-3">
+                <dt className="text-muted">Total harvested</dt>
+                <dd className="font-medium tabular-nums">{fmtEth(coin.feesRoutedEth)} ETH</dd>
+              </div>
+              <div className="flex justify-between gap-6 py-3">
+                <dt className="flex items-center gap-1.5 text-muted"><span className="diamond" aria-hidden /> To vault (80%)</dt>
+                <dd className="font-medium tabular-nums">{fmtEth(market.toVaultEth)} ETH</dd>
+              </div>
+              <div className="flex justify-between gap-6 py-3">
+                <dt className="flex items-center gap-1.5 text-muted"><span className="diamond" aria-hidden /> To treasury (20%)</dt>
+                <dd className="font-medium tabular-nums">{fmtEth(market.toTreasuryEth)} ETH</dd>
+              </div>
             </dl>
           </div>
         </aside>

@@ -127,6 +127,11 @@ export function TradePanel({
       ? `${quote.receive.toLocaleString("en-US", { maximumFractionDigits: 0 })} ${symbol}`
       : `${subPrice(quote.receive)} ETH${ethUsd > 0 ? ` · $${subPrice(quote.receive * ethUsd)}` : ""}`;
 
+  // the connected wallet's current position in this coin
+  const spot = reserveToken > 0 ? reserveQuoteEth / reserveToken : 0;
+  const posTokens = tokenBal !== null ? Number(formatEther(tokenBal)) : 0;
+  const posUsd = posTokens * spot * ethUsd;
+
   async function submit() {
     if (!wallet.address || !amountValid) return;
     setError(null);
@@ -184,6 +189,16 @@ export function TradePanel({
         ))}
       </div>
 
+      {wallet.address && posTokens > 0 ? (
+        <div className="mt-3 flex items-center justify-between rounded-lg bg-surface px-3 py-2 text-xs">
+          <span className="text-muted">Your position</span>
+          <span className="font-medium tabular-nums">
+            {posTokens.toLocaleString("en-US", { maximumFractionDigits: 0 })} {symbol}
+            {ethUsd > 0 ? <span className="text-muted"> · ${subPrice(posUsd)}</span> : null}
+          </span>
+        </div>
+      ) : null}
+
       <label className="mt-4 block">
         <span className="placard">{side === "buy" ? "You pay (ETH)" : `You sell (${symbol})`}</span>
         <input
@@ -191,7 +206,7 @@ export function TradePanel({
           value={amount}
           onChange={(e) => setAmount(e.target.value.replace(/[^0-9.]/g, ""))}
           placeholder="0.0"
-          className="mt-2 w-full rounded-xl border border-line bg-white px-4 py-3 font-mono text-lg outline-none focus:border-foreground"
+          className="mt-2 w-full rounded-2xl border border-line bg-white px-4 py-3 font-mono text-lg outline-none focus:border-foreground"
         />
       </label>
 
@@ -251,7 +266,14 @@ export function TradePanel({
       </div>
 
       {error ? <p className="mt-3 rounded-md border border-accent/40 bg-accent/5 p-2.5 text-xs text-accent">{error}</p> : null}
-      {done ? <p className="mt-3 rounded-md border border-[#1d9e75]/40 bg-[#1d9e75]/5 p-2.5 text-xs text-[#0f6e56]">Done. The page is refreshing with the new price.</p> : null}
+      {done ? (
+        <p className="mt-3 flex items-center justify-between gap-2 rounded-md border border-[#1d9e75]/40 bg-[#1d9e75]/5 p-2.5 text-xs text-[#0f6e56]">
+          <span>Done — the page is refreshing.</span>
+          <a href={`https://robinhoodchain.blockscout.com/tx/${done}`} target="_blank" rel="noreferrer" className="font-medium underline underline-offset-2">
+            View tx ↗
+          </a>
+        </p>
+      ) : null}
 
       <button
         onClick={action}
