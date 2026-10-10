@@ -11,7 +11,7 @@ export function ProfileView({ coins, raffles }: { coins: Coin[]; raffles: Raffle
 
   if (!wallet.address) {
     return (
-      <div className="rounded-xl border border-dashed border-line bg-surface/50 px-6 py-14 text-center">
+      <div className="rounded-2xl border border-dashed border-line bg-surface/50 px-6 py-14 text-center">
         <p className="font-display text-xl font-medium">Connect your wallet</p>
         <p className="mx-auto mt-2 max-w-md text-sm text-muted">See the coins you launched and the NFTs you won.</p>
         <button onClick={wallet.connect} className="mt-5 rounded-md bg-foreground px-5 py-2.5 text-sm font-medium text-white hover:opacity-85">
@@ -34,7 +34,7 @@ export function ProfileView({ coins, raffles }: { coins: Coin[]; raffles: Raffle
 
       <h2 className="mt-8 font-display text-2xl font-medium">Coins you launched</h2>
       {mine.length ? (
-        <ul className="mt-4 divide-y divide-line rounded-xl border border-line text-sm">
+        <ul className="mt-4 divide-y divide-line rounded-2xl border border-line text-sm">
           {mine.map((c) => (
             <li key={c.address}>
               <Link href={`/coin/${c.address}`} className="flex items-center justify-between gap-4 px-5 py-3 hover:bg-surface/60">

@@ -19,7 +19,7 @@ export default function Page() {
     <>
       <PageHeader eyebrow="Reference" title={<>Privacy</>} width="max-w-3xl"></PageHeader>
       <section className="mx-auto max-w-3xl px-5 py-14">
-        <p className="rounded-xl bg-surface p-4 text-sm text-muted">
+        <p className="rounded-2xl bg-surface p-4 text-sm text-muted">
           Draft for review. This policy describes how the site is built today and has not been reviewed by a lawyer. Check it against the privacy laws that apply to your users before launching publicly.
         </p>
         <dl className="mt-8 space-y-6">

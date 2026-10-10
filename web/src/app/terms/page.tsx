@@ -21,7 +21,7 @@ export default function Page() {
     <>
       <PageHeader eyebrow="Reference" title={<>Terms</>} width="max-w-3xl"></PageHeader>
       <section className="mx-auto max-w-3xl px-5 py-14">
-        <p className="rounded-xl bg-surface p-4 text-sm text-muted">
+        <p className="rounded-2xl bg-surface p-4 text-sm text-muted">
           Draft for review. These terms were written for the project and have not been reviewed by a lawyer. Have them checked for the countries you serve before launching publicly.
         </p>
         <dl className="mt-8 space-y-6">

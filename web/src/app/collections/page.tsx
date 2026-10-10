@@ -28,7 +28,7 @@ export default async function Page({ searchParams }: PageProps<"/collections">) 
           <CollectionsList stats={stats} initialQuery={initialQuery} />
         </div>
 
-        <div id="suggest" className="mt-14 rounded-xl bg-surface p-7">
+        <div id="suggest" className="mt-14 rounded-2xl bg-surface p-7">
           <h2 className="font-display text-2xl font-medium">Suggest a collection</h2>
           <p className="mt-2 max-w-xl text-sm text-muted">
             Missing a collection? Submissions will open once the registry contract is live. Until then, this list is

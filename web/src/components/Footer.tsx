@@ -45,20 +45,7 @@ export function Footer() {
   return (
     <footer className="mt-24 px-3 pb-3 sm:px-4 sm:pb-4">
       <div className="ink overflow-hidden rounded-2xl">
-        {/* Closing line and the one action that matters. */}
-        <div className="mx-auto flex max-w-6xl flex-col gap-8 px-6 pt-16 pb-14 md:flex-row md:items-end md:justify-between lg:px-10">
-          <p className="font-display max-w-xl text-[clamp(2.2rem,4.4vw,3.6rem)] leading-[1] font-medium">
-            Every coin <em className="text-accent">curates</em> a collection.
-          </p>
-          <Link
-            href="/launch"
-            className="inline-flex shrink-0 items-center gap-3 self-start rounded-md bg-on-ink px-6 py-3 font-medium text-ink transition hover:bg-white md:self-auto"
-          >
-            Launch a coin <span aria-hidden>→</span>
-          </Link>
-        </div>
-
-        <div className="mx-auto grid max-w-6xl gap-10 border-t border-ink-line px-6 py-14 sm:grid-cols-2 lg:grid-cols-[1.8fr_1fr_1fr_1fr] lg:gap-12 lg:px-10">
+        <div className="mx-auto grid max-w-6xl gap-10 px-6 pt-16 pb-14 sm:grid-cols-2 lg:grid-cols-[1.8fr_1fr_1fr_1fr] lg:gap-12 lg:px-10">
           <div className="sm:col-span-2 lg:col-span-1">
             <Logo />
             <p className="mt-5 max-w-xs text-sm leading-relaxed text-on-ink-muted">

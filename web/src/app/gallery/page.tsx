@@ -32,7 +32,7 @@ export default async function Page() {
       <section className="mx-auto max-w-6xl px-5 py-14">
 
         {purchases.length === 0 ? (
-          <p className="mt-10 rounded-xl border border-dashed border-line bg-surface/50 px-6 py-14 text-center text-sm text-muted">
+          <p className="mt-10 rounded-2xl border border-dashed border-line bg-surface/50 px-6 py-14 text-center text-sm text-muted">
             No NFT has been bought yet. They show up here after a vault sweeps its first floor listing.
           </p>
         ) : (
@@ -43,7 +43,7 @@ export default async function Page() {
                 <Link
                   key={`${p.coin}-${p.tokenId}`}
                   href={`/coin/${p.coin}`}
-                  className="rounded-xl border border-line bg-white p-2.5 transition hover:border-foreground/40"
+                  className="rounded-2xl border border-line bg-white p-2.5 transition hover:border-foreground/40"
                 >
                   <Mat placard={<><span>#{p.tokenId}</span><span>{fmtEth(p.priceEth)} ETH</span></>}>
                     <Avatar

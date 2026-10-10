@@ -125,7 +125,7 @@ export default function Page() {
         </ul>
 
         <H id="contracts">Contracts</H>
-        <dl className="mt-4 divide-y divide-line rounded-xl border border-line text-sm">
+        <dl className="mt-4 divide-y divide-line rounded-2xl border border-line text-sm">
           {rows.map(([label, address]) => (
             <div key={label} className="flex justify-between gap-6 px-5 py-3">
               <dt className="shrink-0 text-muted">{label}</dt>
