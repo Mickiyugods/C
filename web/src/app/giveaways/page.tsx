@@ -1,7 +1,8 @@
 import { RaffleList } from "@/components/RaffleList";
-import { getRaffles } from "@/lib/chain";
+import { LiveRefresh } from "@/components/coin/LiveRefresh";
+import { getRaffles, getCoins } from "@/lib/chain";
 import { PageHeader } from "@/components/PageHeader";
-import type { RaffleRow } from "@/lib/types";
+import type { RaffleRow, Coin } from "@/lib/types";
 
 export const metadata = { title: "Giveaways" };
 
@@ -17,11 +18,13 @@ const run = [
 
 export default async function Page() {
   let raffles: RaffleRow[] = [];
+  let coins: Coin[] = [];
   try {
-    raffles = await getRaffles();
+    [raffles, coins] = await Promise.all([getRaffles(), getCoins()]);
   } catch (e) {
-    console.error("Could not read raffles:", e);
+    console.error("Could not read giveaways:", e);
   }
+  const symbols: Record<string, string> = Object.fromEntries(coins.map((c) => [c.address.toLowerCase(), c.symbol]));
   const live = raffles.filter((r) => r.state !== "settled");
   const delivered = raffles.filter((r) => r.state === "settled");
 
@@ -34,13 +37,15 @@ export default async function Page() {
       </PageHeader>
 
       <section className="mx-auto max-w-6xl px-5 py-14">
+        {/* The boxes advance through their steps live as the keeper moves each giveaway forward. */}
+        <LiveRefresh intervalMs={10000} />
         <div className="grid gap-12 lg:grid-cols-[1fr_300px]">
           <div className="min-w-0 space-y-14">
             <div>
               <h2 className="font-display text-3xl font-medium">In progress</h2>
               <p className="mt-2 text-sm text-muted">Giveaways working through the steps right now.</p>
               <div className="mt-5">
-                <RaffleList raffles={live} empty="No giveaways in progress. They appear here as soon as a vault buys an NFT for an Airdrop coin." />
+                <RaffleList raffles={live} symbols={symbols} empty="No giveaways in progress. They appear here as soon as a vault buys an NFT for an Airdrop coin." />
               </div>
             </div>
 
@@ -48,7 +53,7 @@ export default async function Page() {
               <h2 className="font-display text-3xl font-medium">Delivered</h2>
               <p className="mt-2 text-sm text-muted">NFTs already sent to a winner&apos;s wallet.</p>
               <div className="mt-5">
-                <RaffleList raffles={delivered} empty="No NFT has been delivered yet." />
+                <RaffleList raffles={delivered} symbols={symbols} empty="No NFT has been delivered yet." />
               </div>
             </div>
           </div>
