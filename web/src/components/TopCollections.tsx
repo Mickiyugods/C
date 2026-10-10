@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Avatar } from "./Avatar";
-import { collections as allCollections } from "@/data/mock";
+import { collections as allCollections, collectionUrl } from "@/data/mock";
 import { fmtEth } from "@/lib/format";
 import type { CollectionStats } from "@/lib/types";
 
@@ -31,7 +31,7 @@ export function TopCollections({ stats }: { stats: Record<string, CollectionStat
       <ul className="mt-8 grid grid-cols-2 gap-x-4 gap-y-7 sm:grid-cols-3 lg:grid-cols-6">
         {ranked.map(({ c, s }) => (
           <li key={c.id}>
-            <Link href={`/collections?q=${encodeURIComponent(c.name)}`} className="frame-link block">
+            <a href={collectionUrl(c)} target="_blank" rel="noreferrer" className="frame-link block">
               <div className="mat !p-2">
                 <Avatar
                   seed={Number(c.id.slice(1)) + 100}
@@ -54,7 +54,7 @@ export function TopCollections({ stats }: { stats: Record<string, CollectionStat
                   "Robinhood Chain"
                 )}
               </p>
-            </Link>
+            </a>
           </li>
         ))}
       </ul>

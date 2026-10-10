@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { Avatar } from "./Avatar";
 import { Pager } from "./Pager";
-import { collections, chainLabels, chainLogos, explorers, shortId, type Chain } from "@/data/mock";
+import { collections, chainLabels, chainLogos, collectionUrl, explorers, shortId, type Chain } from "@/data/mock";
 import { fmtEth } from "@/lib/format";
 import type { CollectionStats } from "@/lib/types";
 
@@ -119,14 +119,14 @@ export function CollectionsList({ stats, initialQuery = "" }: { stats: Record<st
       </div>
 
       {visible.length === 0 ? (
-        <p className="mt-6 rounded-xl border border-dashed border-line px-5 py-14 text-center text-sm text-muted">No collections match your search.</p>
+        <p className="mt-6 rounded-2xl border border-dashed border-line px-5 py-14 text-center text-sm text-muted">No collections match your search.</p>
       ) : view === "wall" ? (
         <ul className="mt-6 grid grid-cols-2 gap-x-4 gap-y-7 sm:grid-cols-3 lg:grid-cols-6">
           {visible.map(({ c }) => {
             const s = c.chain === "robinhood" ? stats[c.address.toLowerCase()] : undefined;
             return (
               <li key={c.id}>
-                <a href={explorers[c.chain] + c.address} target="_blank" rel="noreferrer" className="frame-link block" title={c.name}>
+                <a href={collectionUrl(c)} target="_blank" rel="noreferrer" className="frame-link block" title={`View ${c.name} on OpenSea`}>
                   <div className="mat !p-2">
                     <Avatar seed={Number(c.id.slice(1)) + 100} hue={c.hue} image={c.image} alt={c.name} grid={10} className="aspect-square" />
                   </div>
@@ -149,7 +149,7 @@ export function CollectionsList({ stats, initialQuery = "" }: { stats: Record<st
           })}
         </ul>
       ) : (
-        <div className="mt-6 overflow-hidden rounded-xl border border-line bg-white">
+        <div className="mt-6 overflow-hidden rounded-2xl border border-line bg-white">
           <div className={`placard hidden grid-cols-1 gap-4 border-b border-line bg-surface px-5 py-3 lg:grid ${cols}`}>
             <span>#</span>
             <span>Collection</span>
@@ -168,7 +168,7 @@ export function CollectionsList({ stats, initialQuery = "" }: { stats: Record<st
               <div className="flex min-w-0 items-center gap-3">
                 <Avatar seed={Number(c.id.slice(1)) + 100} hue={c.hue} image={c.image} alt={c.name} grid={8} className="h-11 w-11 shrink-0 rounded-xl" />
                 <div className="min-w-0">
-                  <p className="truncate font-medium">{c.name}</p>
+                  <a href={collectionUrl(c)} target="_blank" rel="noreferrer" title={`View ${c.name} on OpenSea`} className="block truncate font-medium hover:text-accent hover:underline">{c.name}</a>
                   <p className="flex items-center text-xs text-muted">
                     <ChainBadge chain={c.chain} />
                     <span className="lg:hidden">

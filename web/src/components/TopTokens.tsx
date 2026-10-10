@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Pager } from "./Pager";
 import { Avatar } from "./Avatar";
-import { collections } from "@/data/mock";
+import { collections, collectionUrl } from "@/data/mock";
 import { fmtEth, fmtUsdCompact, timeAgo } from "@/lib/format";
 import type { Coin } from "@/lib/types";
 
@@ -17,7 +17,7 @@ type SortKey = (typeof sorts)[number]["key"];
 
 const PER_PAGE = 10;
 
-const collectionName = new Map(collections.map((c) => [c.address.toLowerCase(), c.name]));
+const collectionBy = new Map(collections.map((c) => [c.address.toLowerCase(), c]));
 
 function sortCoins(list: Coin[], key: SortKey) {
   const arr = [...list];
@@ -111,7 +111,7 @@ export function TopTokens({ coins, ethUsd = 0 }: { coins: Coin[]; ethUsd?: numbe
       </div>
 
       {coins.length === 0 ? (
-        <div className="mt-8 flex flex-col items-start gap-5 rounded-xl border border-dashed border-line bg-white px-7 py-10 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-8 flex flex-col items-start gap-5 rounded-2xl border border-dashed border-line bg-white px-7 py-10 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="font-display text-xl font-semibold">The register is empty</p>
             <p className="mt-1 max-w-md text-sm text-muted">Each coin launched on Curato is listed here with the collection it curates and the fees it has routed.</p>
@@ -121,8 +121,8 @@ export function TopTokens({ coins, ethUsd = 0 }: { coins: Coin[]; ethUsd?: numbe
           </Link>
         </div>
       ) : (
-        <>
-          <div role="tablist" aria-label="Sort coins" className="mt-8 flex gap-6 border-b border-line text-sm">
+        <div className="mt-8 rounded-2xl border border-line bg-white p-4 sm:p-6">
+          <div role="tablist" aria-label="Sort coins" className="flex gap-6 border-b border-line text-sm">
             {sorts.map((s) => (
               <button
                 key={s.key}
@@ -169,10 +169,30 @@ export function TopTokens({ coins, ethUsd = 0 }: { coins: Coin[]; ethUsd?: numbe
                       </Link>
                     </td>
                     <td className="hidden py-4 pr-4 md:table-cell">
-                      <span className="flex items-center gap-2 text-muted">
-                        <span className="diamond shrink-0" aria-hidden />
-                        <span className="truncate">{collectionName.get(c.collection.toLowerCase()) ?? `${c.collection.slice(0, 8)}…`}</span>
-                      </span>
+                      {(() => {
+                        const col = collectionBy.get(c.collection.toLowerCase());
+                        const label = col?.name ?? `${c.collection.slice(0, 8)}…`;
+                        return (
+                          <span className="flex items-center gap-2 text-muted">
+                            <span className="diamond shrink-0" aria-hidden />
+                            {col ? (
+                              <a
+                                href={collectionUrl(col)}
+                                target="_blank"
+                                rel="noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                title={`View ${label} on OpenSea`}
+                                className="relative z-10 inline-flex min-w-0 items-center gap-1 transition hover:text-foreground hover:underline"
+                              >
+                                <span className="truncate">{label}</span>
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden className="shrink-0 opacity-60"><path d="M14 5h5v5M19 5l-8 8M19 13v4.5A1.5 1.5 0 0 1 17.5 19h-11A1.5 1.5 0 0 1 5 17.5v-11A1.5 1.5 0 0 1 6.5 5H11" /></svg>
+                              </a>
+                            ) : (
+                              <span className="truncate">{label}</span>
+                            )}
+                          </span>
+                        );
+                      })()}
                     </td>
                     <td className="py-4 text-right font-medium tabular-nums">
                       {mcap(c, ethUsd)}
@@ -194,7 +214,7 @@ export function TopTokens({ coins, ethUsd = 0 }: { coins: Coin[]; ethUsd?: numbe
               <Pager page={current} pages={pages} onChange={setPage} />
             </div>
           ) : null}
-        </>
+        </div>
       )}
     </div>
   );

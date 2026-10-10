@@ -187,7 +187,7 @@ export default async function Home() {
       </section>
 
       <div className="border-t border-line bg-surface/60 pb-4">
-        <Discover />
+        <Discover variant="collections" />
       </div>
 
     </>
