@@ -7,13 +7,15 @@ import { setActiveProvider } from "./eip1193";
 
 export const ROBINHOOD_CHAIN_ID = 4663;
 
-// Robinhood Chain for Privy. Transactions still flow through the connected wallet's own provider; this RPC is
-// only a read fallback and the chain Privy keeps wallets switched to.
+// Robinhood Chain for Privy. The public RPC is often unreachable, so use NEXT_PUBLIC_ROBINHOOD_RPC_URL when
+// set (a public/rate-limited key, domain-restricted — never the secret server RPC). Transactions flow through
+// the connected wallet's own provider; this RPC is the read/send fallback Privy uses, mainly for embedded wallets.
+const RPC = process.env.NEXT_PUBLIC_ROBINHOOD_RPC_URL || "https://rpc.mainnet.chain.robinhood.com";
 const robinhood = defineChain({
   id: ROBINHOOD_CHAIN_ID,
   name: "Robinhood Chain",
   nativeCurrency: { name: "Ether", symbol: "ETH", decimals: 18 },
-  rpcUrls: { default: { http: ["https://rpc.mainnet.chain.robinhood.com"] } },
+  rpcUrls: { default: { http: [RPC] } },
   blockExplorers: { default: { name: "Blockscout", url: "https://robinhoodchain.blockscout.com" } },
 });
 
