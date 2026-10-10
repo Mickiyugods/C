@@ -16,7 +16,7 @@ const columns: { title: string; links: [string, string][] }[] = [
   {
     title: "Giveaways",
     links: [
-      ["How they work", "/holders"],
+      ["How they work", "/giveaways"],
       ["Analytics", "/analytics"],
       ["Payments", "/analytics#payments"],
     ],
