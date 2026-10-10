@@ -66,11 +66,11 @@ export default function Page() {
 
         <H id="how">How it works</H>
         <ol className="mt-3 space-y-3 text-[15px] leading-relaxed text-muted">
-          <li><strong className="font-medium text-foreground">1. Launch.</strong> A creator picks a name, a symbol, an image, one collection and an NFT policy, then sends one transaction. The Launcher creates the coin on Pons and a fee router bound to it.</li>
+          <li><strong className="font-medium text-foreground">1. Launch.</strong> A creator picks a name, a symbol, an image, one collection, an NFT policy and a creator tax, then sends one transaction — optionally buying some of their own coin in it. The Launcher creates the coin on Pons and a fee router bound to it.</li>
           <li><strong className="font-medium text-foreground">2. Trade.</strong> People trade the coin on its Pons bonding curve. Each trade earns creator fees.</li>
           <li><strong className="font-medium text-foreground">3. Harvest.</strong> Anyone can call harvest on the coin&apos;s router. It pulls the fees out of Pons and splits them {brand.split.vault}% to the collection vault and {brand.split.treasury}% to the treasury.</li>
           <li><strong className="font-medium text-foreground">4. Sweep.</strong> The keeper makes the vault buy the cheapest listed NFT of its collection, within a price cap, using that coin&apos;s own balance.</li>
-          <li><strong className="font-medium text-foreground">5. Deliver.</strong> The NFT is burned or raffled to holders, depending on the policy the creator chose.</li>
+          <li><strong className="font-medium text-foreground">5. Deliver.</strong> Depending on the policy, the NFT is burned, or raffled to one holder — picked by a verifiable drand beacon and sent straight to their wallet, with nothing to claim.</li>
         </ol>
 
         <H id="fees">Fees</H>
@@ -113,7 +113,9 @@ export default function Page() {
           The random number comes from the drand quicknet network. The contract pins a drand round that has not been published yet, and later
           verifies that round&apos;s BLS signature itself using the chain&apos;s BLS12-381 precompiles, so nobody can choose or predict the result.
           Who held how much is posted by the keeper as a Merkle root; a 15 minute window lets anyone recompute and check it before the draw, and
-          the registry owner can reject a bad snapshot. The winner&apos;s proof is checked on-chain before the NFT moves.
+          the registry owner can reject a bad snapshot. The winner&apos;s proof is checked on-chain before the NFT moves. Posting the snapshot is the
+          keeper&apos;s only role here — pinning the round, submitting the signature and delivering the NFT are permissionless, so anyone can push a
+          giveaway forward.
         </P>
 
         <H id="trust">What you have to trust</H>
