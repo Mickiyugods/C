@@ -14,6 +14,19 @@ const items: [string, string][] = [
   ["Contact", "Questions about this policy or your data? Email us at curatouse@gmail.com."],
 ];
 
+// Turns any email in a sentence into a mailto link.
+function withEmails(text: string) {
+  return text.split(/([\w.+-]+@[\w-]+(?:\.[\w-]+)+)/g).map((p, i) =>
+    /^[\w.+-]+@[\w-]+(?:\.[\w-]+)+$/.test(p) ? (
+      <a key={i} href={`mailto:${p}`} className="text-foreground underline underline-offset-2 hover:text-accent">
+        {p}
+      </a>
+    ) : (
+      p
+    ),
+  );
+}
+
 export default function Page() {
   return (
     <>
@@ -26,7 +39,7 @@ export default function Page() {
           {items.map(([title, text]) => (
             <div key={title}>
               <dt className="font-medium">{title}</dt>
-              <dd className="mt-1.5 text-[15px] leading-relaxed text-muted">{text}</dd>
+              <dd className="mt-1.5 text-[15px] leading-relaxed text-muted">{withEmails(text)}</dd>
             </div>
           ))}
         </dl>
