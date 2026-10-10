@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { getAnalytics, getCoins } from "@/lib/chain";
-import { fmtEth, short } from "@/lib/format";
+import { getAnalytics, getCoins, getEthUsd } from "@/lib/chain";
+import { fmtEth, fmtUsdCompact, short } from "@/lib/format";
 import { brand } from "@/config/brand";
 import { PageHeader } from "@/components/PageHeader";
 import { LiveRefresh } from "@/components/coin/LiveRefresh";
@@ -24,14 +24,18 @@ const empty: Analytics = {
 export default async function Page() {
   let data = empty;
   let coins: Coin[] = [];
+  let ethUsd = 0;
   try {
-    [data, coins] = await Promise.all([getAnalytics(), getCoins()]);
+    [data, coins, ethUsd] = await Promise.all([getAnalytics(), getCoins(), getEthUsd()]);
   } catch (e) {
     console.error("Could not read analytics:", e);
   }
 
-  // Grouped so the page reads as a report, not a wall of equal tiles.
-  const groups: { label: string; stats: [string, string][] }[] = [
+  const treasuryEth = (data.feesRoutedEth * brand.split.treasury) / 100;
+  const usd = (eth: number) => (ethUsd > 0 ? fmtUsdCompact(eth * ethUsd) : undefined);
+
+  // Grouped so the page reads as a report, not a wall of equal tiles. A third item is an optional USD sub-line.
+  const groups: { label: string; stats: [string, string, string?][] }[] = [
     {
       label: "Coins",
       stats: [
@@ -43,9 +47,9 @@ export default async function Page() {
     {
       label: "Money",
       stats: [
-        ["Fees routed", `${fmtEth(data.feesRoutedEth)} ETH`],
-        ["Waiting in vaults", `${fmtEth(data.ethInVaultsEth)} ETH`],
-        ["To treasury (" + String(brand.split.treasury) + "%)", `${fmtEth((data.feesRoutedEth * brand.split.treasury) / 100)} ETH`],
+        ["Fees routed", `${fmtEth(data.feesRoutedEth)} ETH`, usd(data.feesRoutedEth)],
+        ["Waiting in vaults", `${fmtEth(data.ethInVaultsEth)} ETH`, usd(data.ethInVaultsEth)],
+        [`To treasury (${brand.split.treasury}%)`, `${fmtEth(treasuryEth)} ETH`, usd(treasuryEth)],
       ],
     },
     {
@@ -77,10 +81,11 @@ export default async function Page() {
                 <p className="placard">{g.label}</p>
               </div>
               <dl className="grid gap-px bg-line sm:grid-cols-3">
-                {g.stats.map(([label, value]) => (
+                {g.stats.map(([label, value, sub]) => (
                   <div key={label} className="bg-white px-6 py-6">
                     <dt className="text-xs text-muted">{label}</dt>
                     <dd className="font-display mt-2 text-3xl font-medium tabular-nums">{value}</dd>
+                    {sub ? <dd className="mt-0.5 text-xs text-muted tabular-nums">≈ {sub}</dd> : null}
                   </div>
                 ))}
               </dl>
@@ -111,9 +116,9 @@ export default async function Page() {
                   <span className="col-span-2 truncate font-medium md:col-span-1">
                     {c.name} <span className="font-mono text-xs text-muted">${c.symbol} · {short(c.address)}</span>
                   </span>
-                  <span className="tabular-nums md:text-right">{fmtEth(c.feesRoutedEth)} ETH</span>
-                  <span className="tabular-nums text-muted md:text-right">{fmtEth((c.feesRoutedEth * brand.split.vault) / 100)} ETH</span>
-                  <span className="tabular-nums text-muted md:text-right">{fmtEth((c.feesRoutedEth * brand.split.treasury) / 100)} ETH</span>
+                  <span className="tabular-nums md:text-right">{fmtEth(c.feesRoutedEth)} ETH</span>
+                  <span className="tabular-nums text-muted md:text-right">{fmtEth((c.feesRoutedEth * brand.split.vault) / 100)} ETH</span>
+                  <span className="tabular-nums text-muted md:text-right">{fmtEth((c.feesRoutedEth * brand.split.treasury) / 100)} ETH</span>
                 </Link>
               ))
             ) : (
