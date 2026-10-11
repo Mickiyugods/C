@@ -7,6 +7,8 @@ export const brand = {
   launchpad: "Pons",
   social: { x: "https://x.com/" },
   split: { vault: 80, treasury: 20 },
+  /** The official $CURATO coin, launched through this same site. Posted here so it can't be faked. */
+  officialCoin: "0xb3d8f50432dc469b0189889a8074e0cac3b806b0",
 } as const;
 
 // Launch economics shown in the preview. All of these are verified on chain / on a fork

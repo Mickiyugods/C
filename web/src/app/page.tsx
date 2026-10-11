@@ -7,6 +7,7 @@ import { Avatar } from "@/components/Avatar";
 import { getAnalytics, getPurchases, type Purchase } from "@/lib/chain";
 import { fmtEth, short } from "@/lib/format";
 import type { Analytics } from "@/lib/types";
+import { CopyButton } from "@/components/coin/HeaderBits";
 
 // Everything on this page is read from the chain on every request.
 export const dynamic = "force-dynamic";
@@ -103,6 +104,14 @@ export default async function Home() {
     <>
       <div className="px-3 pt-3 sm:px-4 sm:pt-4">
         <div className="ink overflow-hidden rounded-2xl">
+          <div className="flex flex-wrap items-center justify-center gap-2 border-b border-ink-line px-6 py-3 text-xs text-on-ink-muted">
+            <span className="diamond shrink-0" aria-hidden />
+            <span>Official $CURATO:</span>
+            <Link href={`/coin/${brand.officialCoin}`} className="font-medium text-on-ink underline underline-offset-4 transition hover:text-accent">
+              {brand.officialCoin}
+            </Link>
+            <CopyButton text={brand.officialCoin} label="Copy official $CURATO address" className="shrink-0 transition hover:text-on-ink" />
+          </div>
           <section className="mx-auto grid max-w-6xl items-center gap-14 px-6 pt-16 pb-16 lg:grid-cols-[1.25fr_1fr] lg:gap-14 lg:px-10 lg:pt-24 lg:pb-20">
             <div>
               <p className="placard rise flex items-center gap-2" style={{ "--i": 0 } as React.CSSProperties}>

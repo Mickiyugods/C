@@ -47,7 +47,15 @@ export function SocialLinks({ socials }: { socials: Socials }) {
 }
 
 // Copy-to-clipboard icon button, like the one beside the address on Pons.
-export function CopyButton({ text, label = "Copy address" }: { text: string; label?: string }) {
+export function CopyButton({
+  text,
+  label = "Copy address",
+  className = "transition hover:text-foreground",
+}: {
+  text: string;
+  label?: string;
+  className?: string;
+}) {
   const [copied, setCopied] = useState(false);
 
   async function copy() {
@@ -61,7 +69,7 @@ export function CopyButton({ text, label = "Copy address" }: { text: string; lab
   }
 
   return (
-    <button type="button" onClick={copy} aria-label={label} className="transition hover:text-foreground">
+    <button type="button" onClick={copy} aria-label={label} className={className}>
       {copied ? (
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
           <path d="M5 12l5 5L20 6" />

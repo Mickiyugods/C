@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Logo, LogoMark } from "./Logo";
 import { brand } from "@/config/brand";
 import { contracts, PONS_FACTORY, SEAPORT } from "@/lib/contracts";
+import { CopyButton } from "./coin/HeaderBits";
 
 const columns: { title: string; links: [string, string][] }[] = [
   {
@@ -52,6 +53,13 @@ export function Footer() {
             <p className="mt-2 max-w-xs text-sm leading-relaxed text-on-ink-muted">
               Fees buy the floor — {brand.split.vault}/{brand.split.treasury} split, fixed in the contract. Built on {brand.launchpad}.
             </p>
+            <div className="mt-4 flex items-center gap-1.5 text-xs text-on-ink-muted">
+              <span className="diamond shrink-0" aria-hidden />
+              <Link href={`/coin/${brand.officialCoin}`} className="transition hover:text-on-ink">
+                Official $CURATO: {brand.officialCoin.slice(0, 6)}…{brand.officialCoin.slice(-4)}
+              </Link>
+              <CopyButton text={brand.officialCoin} label="Copy official $CURATO address" className="transition hover:text-on-ink" />
+            </div>
           </div>
 
           {columns.map((col) => (
