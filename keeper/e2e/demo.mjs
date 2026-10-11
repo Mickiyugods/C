@@ -33,9 +33,10 @@ else say("collection already listed");
 // 2. launch a coin that curates it
 const launchFee = await pub.readContract({ address: "0x7eD598BcEf8bd9Edd8C97A195C6d13f40801EC7e", abi: parseAbi(["function launchFee() view returns (uint256)"]), functionName: "launchFee" });
 const fromBlock = BigInt(process.env.DEPLOY_BLOCK ?? "82599583");
+const devBuy = parseEther("0.4");
 await send("creator", {
-  address: dep.launcher, abi: abis.launcherAbi, functionName: "launch", value: launchFee,
-  args: [{ name: "Cash Cats", symbol: "CCATS", logo: "https://gateway.pinata.cloud/ipfs/bafybeigca2wgv7q22i3cdw4nvgjeuzqt3ra66o6duk6tezk6l3heaimtau", description: "A coin that curates the Cash Cats Brokers collection. Fees route 80% to the vault, 20% to the treasury.", socials: { twitter: "cashcats", telegram: "cashcats", discord: "", website: "https://cashcats.example", farcaster: "" }, collection: COLLECTION, policy: 1, creatorTaxBps: 100, salt: "0x" + "ca".repeat(32) }],
+  address: dep.launcher, abi: abis.launcherAbi, functionName: "launch", value: launchFee + devBuy,
+  args: [{ name: "Cash Cats", symbol: "CCATS", logo: "https://gateway.pinata.cloud/ipfs/bafybeigca2wgv7q22i3cdw4nvgjeuzqt3ra66o6duk6tezk6l3heaimtau", description: "A coin that curates the Cash Cats Brokers collection. Fees route 80% to the vault, 20% to the treasury.", socials: { twitter: "cashcats", telegram: "cashcats", discord: "", website: "https://cashcats.example", farcaster: "" }, collection: COLLECTION, policy: 1, creatorTaxBps: 100, salt: "0x" + "ca".repeat(32), devBuy }],
 });
 const launched = await pub.getLogs({ address: dep.launcher, event: getAbiItem({ abi: abis.launcherAbi, name: "CoinLaunched" }), fromBlock });
 const mine = launched.find((l) => l.args.collection.toLowerCase() === COLLECTION.toLowerCase()).args;

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { parseEther } from "viem";
 import { Avatar } from "./Avatar";
 import { collections as allCollections } from "@/data/mock";
 import { useWallet } from "@/lib/wallet";
@@ -67,6 +68,7 @@ export function LaunchForm({ listed }: { listed: string[] | null }) {
   const [website, setWebsite] = useState("");
   const [x, setX] = useState("");
   const [telegram, setTelegram] = useState("");
+  const [devBuy, setDevBuy] = useState("");
   const [collectionId, setCollectionId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [policy, setPolicy] = useState<Policy>("airdrop");
@@ -177,6 +179,7 @@ export function LaunchForm({ listed }: { listed: string[] | null }) {
           collection: selected.address as `0x${string}`,
           policy,
           creatorTaxBps: Math.round(tax * 100),
+          devBuy: devBuy && Number(devBuy) > 0 ? parseEther(devBuy) : 0n,
         },
         (s) => setStatus(s),
       );
@@ -395,6 +398,21 @@ export function LaunchForm({ listed }: { listed: string[] | null }) {
                 </div>
                 <Err>{show("website", 1)}</Err>
               </div>
+
+              <div>
+                <Label hint="optional">Dev buy</Label>
+                <div className="flex items-center gap-2">
+                  <input
+                    inputMode="decimal"
+                    className={field}
+                    value={devBuy}
+                    onChange={(e) => setDevBuy(e.target.value.replace(/[^0-9.]/g, ""))}
+                    placeholder="0.0"
+                  />
+                  <span className="shrink-0 text-sm text-muted">ETH</span>
+                </div>
+                <p className="mt-1.5 text-xs text-muted">Buy your own coin in the same launch transaction — the tokens go straight to your wallet.</p>
+              </div>
             </div>
           )}
 
@@ -546,6 +564,7 @@ export function LaunchForm({ listed }: { listed: string[] | null }) {
                   ["NFT policy", policy === "airdrop" ? "Airdrop to holders" : "Burn them"],
                   ["Creator tax", `${tax.toFixed(2)}%`],
                   ["Links", [website, x, telegram].filter(Boolean).join(" · ") || "None"],
+                  ["Dev buy", devBuy && Number(devBuy) > 0 ? `${devBuy} ETH` : "None"],
                 ].map(([k, v]) => (
                   <div key={k} className="flex justify-between gap-6 px-4 py-3">
                     <dt className="text-muted">{k}</dt>

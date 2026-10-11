@@ -216,6 +216,11 @@ export const launcherAbi = [
             "name": "salt",
             "type": "bytes32",
             "internalType": "bytes32"
+          },
+          {
+            "name": "devBuy",
+            "type": "uint256",
+            "internalType": "uint256"
           }
         ]
       }
@@ -1836,13 +1841,6 @@ export const feeRouterAbi = [
   },
   {
     "type": "function",
-    "name": "flushVault",
-    "inputs": [],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
     "name": "harvest",
     "inputs": [],
     "outputs": [
@@ -1944,19 +1942,6 @@ export const feeRouterAbi = [
     "stateMutability": "view"
   },
   {
-    "type": "function",
-    "name": "vaultPending",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
     "type": "event",
     "name": "Bound",
     "inputs": [
@@ -2016,32 +2001,6 @@ export const feeRouterAbi = [
   {
     "type": "event",
     "name": "TreasuryPaid",
-    "inputs": [
-      {
-        "name": "amount",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "VaultDeferred",
-    "inputs": [
-      {
-        "name": "amount",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "VaultPaid",
     "inputs": [
       {
         "name": "amount",
@@ -2584,11 +2543,6 @@ export const raffleDistributorAbi = [
   {
     "type": "error",
     "name": "PrecompileFailed",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "Reentrancy",
     "inputs": []
   },
   {
