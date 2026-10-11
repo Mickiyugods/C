@@ -104,14 +104,6 @@ export default async function Home() {
     <>
       <div className="px-3 pt-3 sm:px-4 sm:pt-4">
         <div className="ink overflow-hidden rounded-2xl">
-          <div className="flex flex-wrap items-center justify-center gap-2 border-b border-ink-line px-6 py-3 text-xs text-on-ink-muted">
-            <span className="diamond shrink-0" aria-hidden />
-            <span>Official $CURATO:</span>
-            <Link href={`/coin/${brand.officialCoin}`} className="font-medium text-on-ink underline underline-offset-4 transition hover:text-accent">
-              {brand.officialCoin}
-            </Link>
-            <CopyButton text={brand.officialCoin} label="Copy official $CURATO address" className="shrink-0 transition hover:text-on-ink" />
-          </div>
           <section className="mx-auto grid max-w-6xl items-center gap-14 px-6 pt-16 pb-16 lg:grid-cols-[1.25fr_1fr] lg:gap-14 lg:px-10 lg:pt-24 lg:pb-20">
             <div>
               <p className="placard rise flex items-center gap-2" style={{ "--i": 0 } as React.CSSProperties}>
@@ -154,6 +146,18 @@ export default async function Home() {
               </div>
             </div>
           </section>
+
+          <div className="flex flex-wrap items-center justify-center gap-3 border-t border-ink-line px-6 py-6 lg:px-10">
+            <span className="diamond shrink-0" aria-hidden />
+            <p className="placard !text-on-ink-muted">Official $CURATO contract</p>
+            <Link
+              href={`/coin/${brand.officialCoin}`}
+              className="font-display text-xl font-medium break-all text-on-ink underline underline-offset-4 transition hover:text-accent sm:text-2xl"
+            >
+              {brand.officialCoin}
+            </Link>
+            <CopyButton text={brand.officialCoin} label="Copy official $CURATO address" className="shrink-0 text-on-ink-muted transition hover:text-on-ink" />
+          </div>
 
           <dl aria-label="Live totals" className="grid grid-cols-2 border-t border-ink-line lg:grid-cols-4">
             {ledger.map((s, i) => (
