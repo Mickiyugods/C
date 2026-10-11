@@ -12,8 +12,20 @@ const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"]
 const cormorant = Cormorant_Garamond({ variable: "--font-cormorant", subsets: ["latin"], weight: ["500", "600", "700"], style: ["normal", "italic"] });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://usecurato.app"),
   title: { default: `Home - ${brand.name}`, template: `%s - ${brand.name}` },
   description: brand.description,
+  openGraph: {
+    title: brand.name,
+    description: brand.description,
+    type: "website",
+    siteName: brand.name,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: brand.name,
+    description: brand.description,
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
