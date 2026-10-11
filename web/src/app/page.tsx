@@ -150,12 +150,14 @@ export default async function Home() {
           <div className="flex flex-wrap items-center justify-center gap-3 border-t border-ink-line px-6 py-6 lg:px-10">
             <span className="diamond shrink-0" aria-hidden />
             <p className="placard !text-on-ink-muted">Official $CURATO contract</p>
-            <Link
-              href={`/coin/${brand.officialCoin}`}
+            <a
+              href={`https://robinhoodchain.blockscout.com/address/${brand.officialCoin}`}
+              target="_blank"
+              rel="noreferrer"
               className="font-display text-xl font-medium break-all text-on-ink underline underline-offset-4 transition hover:text-accent sm:text-2xl"
             >
               {brand.officialCoin}
-            </Link>
+            </a>
             <CopyButton text={brand.officialCoin} label="Copy official $CURATO address" className="shrink-0 text-on-ink-muted transition hover:text-on-ink" />
           </div>
 

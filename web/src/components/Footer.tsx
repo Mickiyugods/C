@@ -55,9 +55,14 @@ export function Footer() {
             </p>
             <div className="mt-4 flex items-center gap-1.5 text-xs text-on-ink-muted">
               <span className="diamond shrink-0" aria-hidden />
-              <Link href={`/coin/${brand.officialCoin}`} className="transition hover:text-on-ink">
+              <a
+                href={`https://robinhoodchain.blockscout.com/address/${brand.officialCoin}`}
+                target="_blank"
+                rel="noreferrer"
+                className="transition hover:text-on-ink"
+              >
                 Official $CURATO: {brand.officialCoin.slice(0, 6)}…{brand.officialCoin.slice(-4)}
-              </Link>
+              </a>
               <CopyButton text={brand.officialCoin} label="Copy official $CURATO address" className="transition hover:text-on-ink" />
             </div>
           </div>
