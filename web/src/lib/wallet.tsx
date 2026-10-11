@@ -132,7 +132,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
       appId={appId}
       config={{
         appearance: { theme: "light", accentColor: "#c8643e", walletChainType: "ethereum-only" },
-        loginMethods: ["wallet", "email", "google", "twitter"],
+        loginMethods: ["wallet"],
         embeddedWallets: { ethereum: { createOnLogin: "users-without-wallets" } },
         defaultChain: robinhood,
         supportedChains: [robinhood],
