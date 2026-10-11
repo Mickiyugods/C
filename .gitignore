@@ -17,3 +17,4 @@ keeper/state/
 
 # local deployments (addresses are public, but they are specific to a fork)
 contracts/deployments/*-local.json
+contracts/_rpc.ps1

@@ -61,8 +61,6 @@ export type LaunchArgs = {
   collection: Address;
   policy: "airdrop" | "burn";
   creatorTaxBps: number;
-  /** Optional first buy by the creator, in wei, spent in the launch tx. */
-  devBuy?: bigint;
 };
 
 export type LaunchResult = { hash: `0x${string}`; coin: Address; router: Address; vault: Address; curve: Address };
@@ -73,8 +71,7 @@ export async function launchCoin(a: LaunchArgs, onStatus?: (s: "simulating" | "c
   const { publicClient, walletClient } = clients();
 
   const fee = await publicClient.readContract({ address: PONS_FACTORY, abi: ponsFactoryAbi, functionName: "launchFee" });
-  const devBuy = a.devBuy ?? 0n;
-  const value = fee + fee / 10n + devBuy; // the Launcher refunds whatever is above the fee + dev buy
+  const value = fee + fee / 10n; // the Launcher refunds whatever is above the fee
 
   const salt = ("0x" + Array.from(crypto.getRandomValues(new Uint8Array(32)), (b) => b.toString(16).padStart(2, "0")).join("")) as `0x${string}`;
   const input = {
@@ -87,7 +84,6 @@ export async function launchCoin(a: LaunchArgs, onStatus?: (s: "simulating" | "c
     policy: a.policy === "airdrop" ? 1 : 2,
     creatorTaxBps: a.creatorTaxBps,
     salt,
-    devBuy,
   } as const;
 
   onStatus?.("simulating");

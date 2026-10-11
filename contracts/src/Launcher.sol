@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import {IPonsFactory, IPonsCurve} from "./interfaces/IPons.sol";
+import {IPonsFactory} from "./interfaces/IPons.sol";
 import {CollectionRegistry} from "./CollectionRegistry.sol";
 import {FeeRouter} from "./FeeRouter.sol";
 import {Vault} from "./Vault.sol";
@@ -29,8 +29,6 @@ contract Launcher {
         Vault.Policy policy;
         uint16 creatorTaxBps;
         bytes32 salt;
-        /// @dev Optional ETH the creator spends on the first buy, in the same tx. 0 to skip.
-        uint256 devBuy;
     }
 
     struct CoinInfo {
@@ -138,7 +136,7 @@ contract Launcher {
         if (input.creatorTaxBps > IPonsFactoryExtra(address(factory)).maxCreatorTaxBps()) revert TaxTooHigh();
 
         uint256 fee = factory.launchFee();
-        if (msg.value < fee + input.devBuy) revert LaunchFeeTooLow();
+        if (msg.value < fee) revert LaunchFeeTooLow();
 
         address vault = _vaultFor(input.collection);
 
@@ -178,12 +176,7 @@ contract Launcher {
         emit CoinMetadata(coin, input.name, input.symbol, input.logo, input.description);
         _emitSocials(coin, input.socials);
 
-        // Optional first buy by the creator, in the same transaction; tokens go straight to them.
-        if (input.devBuy > 0) {
-            IPonsCurve(curve).buy{value: input.devBuy}(input.devBuy, 0, msg.sender);
-        }
-
-        uint256 excess = msg.value - fee - input.devBuy;
+        uint256 excess = msg.value - fee;
         if (excess > 0) {
             (bool ok,) = msg.sender.call{value: excess}("");
             if (!ok) revert RefundFailed();

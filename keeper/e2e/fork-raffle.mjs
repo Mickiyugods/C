@@ -57,7 +57,7 @@ await send("owner", { address: dep.registry, abi: abis.collectionRegistryAbi, fu
 const launchFee = await pub.readContract({ address: "0x7eD598BcEf8bd9Edd8C97A195C6d13f40801EC7e", abi: parseAbi(["function launchFee() view returns (uint256)"]), functionName: "launchFee" });
 await send("creator", {
   address: dep.launcher, abi: abis.launcherAbi, functionName: "launch", value: launchFee,
-  args: [{ name: "E2E", symbol: "E2E", logo: "https://example.com/e2e.png", description: "keeper e2e", socials: { twitter: "", telegram: "", discord: "", website: "", farcaster: "" }, collection: nft, policy: 1, creatorTaxBps: 100, salt: "0x" + "ee".repeat(32), devBuy: 0n }],
+  args: [{ name: "E2E", symbol: "E2E", logo: "https://example.com/e2e.png", description: "keeper e2e", socials: { twitter: "", telegram: "", discord: "", website: "", farcaster: "" }, collection: nft, policy: 1, creatorTaxBps: 100, salt: "0x" + "ee".repeat(32) }],
 });
 const launched = await pub.getLogs({ address: dep.launcher, event: getAbiItem({ abi: abis.launcherAbi, name: "CoinLaunched" }), fromBlock: BigInt(process.env.DEPLOY_BLOCK ?? "79289701") });
 const mine = launched.find((l) => l.args.collection.toLowerCase() === nft.toLowerCase()).args;
