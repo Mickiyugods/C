@@ -79,6 +79,12 @@ contract RejectingTreasury {
     }
 }
 
+contract RejectingVault {
+    function deposit(address) external payable {
+        revert("no thanks");
+    }
+}
+
 contract AcceptingTreasury {
     receive() external payable {}
 }
@@ -244,8 +250,47 @@ contract FeeRouterTest is Test {
         assertEq(r.treasuryPending(), 0);
     }
 
+    // ---- a broken vault must never block the treasury, and must be retryable
+
+    function test_rejectingVaultDoesNotBlockTreasury() public {
+        RejectingVault bad = new RejectingVault();
+        FeeRouter r = new FeeRouter(launcher, address(bad), treasury, address(escrow), address(1));
+        MockCurve c = new MockCurve(escrow, address(r));
+        r.bind(coin, address(c));
+
+        vm.deal(address(this), 1 ether);
+        c.setPending{value: 1 ether}(1 ether);
+        r.harvest();
+
+        assertEq(treasury.balance, 0.2 ether, "treasury still paid");
+        assertEq(r.vaultPending(), 0.8 ether, "vault share is parked, not lost");
+        assertEq(address(r).balance, 0.8 ether);
+
+        r.flushVault(); // still rejecting: stays parked
+        assertEq(r.vaultPending(), 0.8 ether);
+    }
+
+    function test_flushVaultPaysOnceItRecovers() public {
+        FeeRouter r = new FeeRouter(launcher, address(vault), treasury, address(escrow), address(1));
+        MockCurve c = new MockCurve(escrow, address(r));
+        r.bind(coin, address(c));
+
+        vm.deal(address(r), 0.5 ether); // simulate a parked amount via state
+        vm.store(address(r), bytes32(uint256(3)), bytes32(uint256(0.5 ether)));
+        // slot layout: coin(0) curve(1) treasuryPending(2) vaultPending(3)
+        assertEq(r.vaultPending(), 0.5 ether);
+
+        r.flushVault();
+        assertEq(vault.credited(coin), 0.5 ether);
+        assertEq(r.vaultPending(), 0);
+    }
+
     // ---- reentrancy
 
+    /// @notice A vault that tries to reenter harvest() from inside deposit() must still be blocked by the
+    ///         nonReentrant lock. Since the vault leg is now try/catch'd (so a broken or hostile vault can't
+    ///         hold the treasury's share hostage), the *whole* harvest() no longer reverts — instead the
+    ///         blocked deposit is caught and deferred to vaultPending, and the treasury is still paid.
     function test_reentrancyIsBlocked() public {
         ReentrantVault rv = new ReentrantVault();
         FeeRouter r = new FeeRouter(launcher, address(rv), treasury, address(escrow), address(1));
@@ -256,8 +301,10 @@ contract FeeRouterTest is Test {
         vm.deal(address(this), 1 ether);
         c.setPending{value: 1 ether}(1 ether);
 
-        vm.expectRevert(FeeRouter.Reentrancy.selector);
-        r.harvest();
+        r.harvest(); // does not revert: the reentrant inner call is the one that fails
+
+        assertEq(r.vaultPending(), 0.8 ether, "blocked reentrant deposit must be deferred, not lost or silently dropped");
+        assertEq(treasury.balance, 0.2 ether, "treasury must still be paid even though the vault leg was blocked");
     }
 
     receive() external payable {}

@@ -28,6 +28,10 @@ contract FeeRouter {
 
     /// @notice Treasury share that could not be pushed (for example a treasury that rejects ETH).
     uint256 public treasuryPending;
+    /// @notice Vault share that could not be pushed (for example the coin was somehow never registered
+    ///         on the vault). Kept here instead of reverting the whole harvest, so the treasury's 20%
+    ///         and whatever else called harvest() in the same batch are never held hostage by this.
+    uint256 public vaultPending;
 
     uint256 private _lock = 1;
 
@@ -35,6 +39,8 @@ contract FeeRouter {
     event Harvested(uint256 received, uint256 toVault, uint256 toTreasury);
     event TreasuryPaid(uint256 amount);
     event TreasuryDeferred(uint256 amount);
+    event VaultPaid(uint256 amount);
+    event VaultDeferred(uint256 amount);
 
     error NotLauncher();
     error AlreadyBound();
@@ -110,6 +116,19 @@ contract FeeRouter {
         }
     }
 
+    /// @notice Retry any vault share that earlier failed to go through. Anyone may call.
+    function flushVault() external nonReentrant {
+        uint256 amount = vaultPending;
+        if (amount == 0) return;
+        vaultPending = 0;
+        try IVaultDeposit(vault).deposit{value: amount}(coin) {
+            emit VaultPaid(amount);
+        } catch {
+            vaultPending = amount;
+            emit VaultDeferred(amount);
+        }
+    }
+
     receive() external payable {}
 
     // ------------------------------------------------------------------ internal
@@ -127,7 +146,12 @@ contract FeeRouter {
         uint256 toVault = (received * VAULT_BPS) / BPS;
         uint256 toTreasury = received - toVault; // rounding dust goes to the treasury
 
-        IVaultDeposit(vault).deposit{value: toVault}(coin);
+        try IVaultDeposit(vault).deposit{value: toVault}(coin) {
+            emit VaultPaid(toVault);
+        } catch {
+            vaultPending += toVault;
+            emit VaultDeferred(toVault);
+        }
 
         (bool ok,) = treasury.call{value: toTreasury}("");
         if (ok) {
