@@ -65,6 +65,8 @@ contract RaffleDistributor {
     uint256 public raffleCount;
     mapping(uint256 id => Raffle) private _raffles;
 
+    uint256 private _lock = 1;
+
     event RaffleCreated(uint256 indexed id, address indexed collection, address indexed coin, uint256 tokenId, uint64 arrivedBlock);
     event SnapshotPosted(uint256 indexed id, bytes32 root, uint256 totalWeight);
     event SnapshotRejected(uint256 indexed id);
@@ -86,6 +88,14 @@ contract RaffleDistributor {
     error TicketNotInRange();
     error BadProof();
     error BadRange();
+    error Reentrancy();
+
+    modifier nonReentrant() {
+        if (_lock != 1) revert Reentrancy();
+        _lock = 2;
+        _;
+        _lock = 1;
+    }
 
     constructor(address registry_) {
         if (registry_ == address(0)) revert ZeroAddress();
@@ -174,6 +184,7 @@ contract RaffleDistributor {
     ///         winner's leaf and Merkle proof; no one has to claim anything.
     function settle(uint256 id, uint256 index, address holder, uint256 start, uint256 end, bytes32[] calldata proof)
         external
+        nonReentrant
     {
         Raffle storage r = _raffles[id];
         if (r.state != State.Drawn) revert WrongState();
